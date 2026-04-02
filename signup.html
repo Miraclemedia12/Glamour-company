@@ -89,6 +89,11 @@
             transform: scale(0.97);
         }
 
+        .btn-glam:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         select.input-field {
             appearance: none;
             cursor: pointer;
@@ -104,6 +109,13 @@
             margin-right: 10px;
             position: relative;
             cursor: pointer;
+        }
+
+        #statusMsg {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 10px;
+            min-height: 18px;
         }
     </style>
 </head>
@@ -174,9 +186,10 @@
                 </div>
 
                 <!-- Submit -->
-                <button type="submit" class="btn-glam mt-4">
+                <button type="submit" id="submitBtn" class="btn-glam mt-4">
                     Complete Registration
                 </button>
+                <div id="statusMsg"></div>
             </form>
 
             <div class="text-center mt-8">
@@ -195,24 +208,28 @@
         </footer>
     </div>
 
-    <script>
-        // Handle Signup and Local Storage for Username
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const fullName = document.getElementById('fullName').value;
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-            // Save details to be used in the Dashboard
-            localStorage.setItem('glamour_username', username);
-            localStorage.setItem('glamour_fullname', fullName);
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs",
+            authDomain: "glamour-76f78.firebaseapp.com",
+            projectId: "glamour-76f78",
+            storageBucket: "glamour-76f78.firebasestorage.app",
+            messagingSenderId: "378301162636",
+            appId: "1:378301162636:web:abe1c6aba76a93447707a9",
+            measurementId: "G-XBLLR2TCVG"
+        };
 
-            // Logic to redirect or proceed
-            alert('Account created successfully, ' + username + '!');
-            window.location.href = 'dashboard.html'; // Redirect to dashboard
-        });
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        // Toggle checkbox visual state
+        // Handle Checkbox UI logic
         const checkbox = document.getElementById('terms');
         const customCheck = document.querySelector('.custom-checkbox');
         
@@ -223,6 +240,81 @@
             } else {
                 customCheck.innerHTML = '';
                 customCheck.style.backgroundColor = 'transparent';
+            }
+        });
+
+        // Registration Process
+        const signupForm = document.getElementById('signupForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMsg = document.getElementById('statusMsg');
+
+        signupForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // UI Feedback
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Processing Elite Access...";
+            statusMsg.innerText = "";
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const rawUsername = document.getElementById('username').value.trim();
+            const username = rawUsername.toLowerCase().replace(/\s+/g, ''); // Standardize username
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const country = document.getElementById('country').value;
+
+            try {
+                // 1. Authenticate session
+                await signInAnonymously(auth);
+                const user = auth.currentUser;
+
+                if (!user) throw new Error("Connection failed. Try again.");
+
+                // 2. Reference to unique user document
+                // Path: /artifacts/{appId}/public/data/users/{username}
+                const userRef = doc(db, 'artifacts', 'glamour', 'public', 'data', 'users', username);
+                
+                // 3. Check availability
+                const checkDoc = await getDoc(userRef);
+                if (checkDoc.exists()) {
+                    throw new Error("Elite username already claimed.");
+                }
+
+                // 4. Save User Data
+                const userData = {
+                    uid: user.uid,
+                    fullName: fullName,
+                    username: username,
+                    email: email,
+                    phone: phone,
+                    password: password, // Note: In production, never store plain text
+                    country: country,
+                    balance: 0.00,
+                    referrals: 0,
+                    joinedAt: new Date().toISOString(),
+                    accountStatus: 'active'
+                };
+
+                await setDoc(userRef, userData);
+
+                // 5. Local storage for session handling
+                localStorage.setItem('glamour_username', username);
+                localStorage.setItem('glamour_fullname', fullName);
+
+                statusMsg.style.color = "#d4af37";
+                statusMsg.innerText = "Welcome to Glamour! Redirecting...";
+
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error(error);
+                statusMsg.style.color = "#ff4d4d";
+                statusMsg.innerText = error.message;
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Complete Registration";
             }
         });
     </script>
