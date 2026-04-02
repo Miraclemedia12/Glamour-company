@@ -43,10 +43,12 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            background: rgba(5, 5, 5, 0.95);
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+            /* Updated for transparency and glass effect */
+            background: rgba(5, 5, 5, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             padding: 16px 20px;
+            transition: background 0.3s ease;
         }
 
         #menu-overlay {
@@ -170,7 +172,7 @@
             <div class="flex items-center gap-4">
                 <!-- Large Logo in Sticky Nav -->
                 <img src="logo.png" alt="Logo" class="w-12 h-12 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/6941/6941697.png'">
-                <span class="text-2xl font-black gold-text uppercase tracking-tighter">Glamour</span>
+                <span class="text-2xl font-black gold-text uppercase tracking-tighter">GLAMOUR</span>
             </div>
             <button onclick="toggleMenu()" class="flex flex-col gap-1.5 p-2">
                 <div class="w-7 h-0.5 bg-white"></div>
