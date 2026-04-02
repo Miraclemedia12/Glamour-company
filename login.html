@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Member Access | Glamour Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        :root {
+            --glam-gold: #d4af37;
+            --glam-black: #050505;
+        }
+
+        body { 
+            background-color: var(--glam-black); 
+            color: #ffffff; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Animated Background Glows */
+        .bg-glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(50px);
+        }
+
+        .gold-text {
+            background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 40px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            padding: 18px 18px 18px 55px;
+            width: 100%;
+            color: #fff;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .input-box:focus {
+            border-color: var(--glam-gold);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+
+        .icon-overlay {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--glam-gold);
+            opacity: 0.6;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+            color: #000;
+            font-weight: 800;
+            border-radius: 18px;
+            padding: 18px;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 12px;
+            margin-top: 10px;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+
+        #error-msg {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="bg-glow top-0 left-0"></div>
+    <div class="bg-glow bottom-0 right-0"></div>
+
+    <div class="login-card">
+        <div class="text-center mb-10">
+            <h2 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.5em] mb-2">Welcome Back</h2>
+            <h1 class="text-3xl font-black gold-text uppercase italic tracking-tighter">GLAMOUR</h1>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <i class="fas fa-user-circle icon-overlay"></i>
+                <input type="text" id="loginId" placeholder="Username or Email" class="input-box" required>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-shield-alt icon-overlay"></i>
+                <input type="password" id="password" placeholder="Account Password" class="input-box" required>
+            </div>
+
+            <div class="flex justify-between items-center px-2 mb-6">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" class="accent-yellow-600">
+                    <span class="text-[10px] font-bold text-gray-500 uppercase">Remember</span>
+                </label>
+                <a href="#" class="text-[10px] font-bold gold-text uppercase tracking-wider">Forgot?</a>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-login">Verify Access</button>
+            
+            <p id="error-msg"></p>
+        </form>
+
+        <div class="text-center mt-10">
+            <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+                New to the Circle? 
+                <a href="signup.html" class="gold-text ml-1">Create Elite Account</a>
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const form = document.getElementById('loginForm');
+        const btn = document.getElementById('submitBtn');
+        const errorMsg = document.getElementById('error-msg');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            btn.innerText = "Authenticating...";
+            btn.disabled = true;
+            errorMsg.innerText = "";
+
+            try {
+                // Ensure anonymous tunnel is open
+                await signInAnonymously(auth);
+
+                const loginId = document.getElementById('loginId').value.trim().toLowerCase();
+                const pass = document.getElementById('password').value;
+
+                // Search for user in your "users" collection
+                const querySnapshot = await getDocs(collection(db, "users"));
+                let authenticatedUser = null;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if ((data.username === loginId || data.email === loginId) && data.password === pass) {
+                        authenticatedUser = data;
+                    }
+                });
+
+                if (authenticatedUser) {
+                    // Success - Save session
+                    localStorage.setItem('glamour_username', authenticatedUser.username);
+                    errorMsg.style.color = "#d4af37";
+                    errorMsg.innerText = "Access Granted. Redirecting...";
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    throw new Error("Invalid Credentials provided");
+                }
+
+            } catch (err) {
+                errorMsg.style.color = "#ff4d4d";
+                errorMsg.innerText = err.message;
+                btn.innerText = "Verify Access";
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
