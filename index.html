@@ -43,12 +43,12 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            /* Updated for transparency and glass effect */
             background: rgba(5, 5, 5, 0.4);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             padding: 16px 20px;
             transition: background 0.3s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         }
 
         #menu-overlay {
@@ -62,13 +62,14 @@
         }
 
         .menu-link {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 700;
             padding: 18px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: #e5e7eb;
         }
 
         .glam-card {
@@ -79,6 +80,7 @@
             margin-bottom: 20px;
             position: relative;
             overflow: hidden;
+            transition: transform 0.3s ease;
         }
 
         .glam-card-icon {
@@ -145,7 +147,6 @@
     <div id="menu-overlay">
         <div class="flex justify-between items-center mb-10">
             <div class="flex items-center gap-3">
-                <!-- Large Logo in Menu -->
                 <img src="logo.png" alt="Logo" class="w-14 h-14 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/6941/6941697.png'">
                 <span class="gold-text font-black text-2xl uppercase tracking-tighter">Glamour</span>
             </div>
@@ -154,8 +155,10 @@
 
         <nav class="flex flex-col">
             <a href="index.html" class="menu-link">Home <i class="fas fa-chevron-right text-[10px] opacity-20"></i></a>
-            <a href="#" onclick="toggleMenu(); window.scrollTo(0,0)" class="menu-link">WhatsApp Earnings <i class="fas fa-chevron-right text-[10px] opacity-20"></i></a>
-            <a href="#" onclick="toggleMenu(); window.scrollTo(0,0)" class="menu-link">TikTok Live <i class="fas fa-chevron-right text-[10px] opacity-20"></i></a>
+            <a href="#" onclick="toggleMenu(); window.scrollTo(0,0)" class="menu-link">Glam Works <i class="fas fa-chevron-right text-[10px] opacity-20"></i></a>
+            <a href="#" onclick="toggleMenu(); window.scrollTo(0,0)" class="menu-link">Glam Lifestyle <i class="fas fa-chevron-right text-[10px] opacity-20"></i></a>
+            <a href="#" onclick="toggleMenu(); window.scrollTo(0,0)" class="menu-link">Glam Script2Cash <i class="fas fa-chevron-right text-[10px] opacity-20"></i></a>
+            <a href="#" onclick="toggleMenu(); window.scrollTo(0,0)" class="menu-link">Glam Realtime <i class="fas fa-chevron-right text-[10px] opacity-20"></i></a>
             <a href="about.html" class="menu-link">About <i class="fas fa-chevron-right text-[10px] opacity-20"></i></a>
             <a href="contact.html" class="menu-link">Support <i class="fas fa-chevron-right text-[10px] opacity-20"></i></a>
         </nav>
@@ -170,7 +173,6 @@
     <nav class="sticky-nav">
         <div class="max-w-lg mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <!-- Large Logo in Sticky Nav -->
                 <img src="logo.png" alt="Logo" class="w-12 h-12 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/6941/6941697.png'">
                 <span class="text-2xl font-black gold-text uppercase tracking-tighter">GLAMOUR</span>
             </div>
@@ -194,7 +196,7 @@
             Get Started
         </button>
 
-        <!-- Live People Counter with Icon -->
+        <!-- Live People Counter -->
         <div>
             <div class="inline-flex items-center gap-3 px-5 py-3 bg-white/5 border border-white/10 rounded-2xl mb-16">
                 <i class="fas fa-bolt text-xl text-yellow-400"></i>
@@ -205,7 +207,7 @@
             </div>
         </div>
 
-        <!-- FEATURE BOXES WITH ICONS -->
+        <!-- FEATURE BOXES -->
         <div class="mt-8 text-left space-y-4">
             
             <div class="glam-card">
@@ -271,13 +273,6 @@
                 </div>
                 <p class="text-gray-400 text-sm leading-relaxed">Watch content, explore tools and learn digital opportunities from European experts.</p>
             </div>
-            <div class="step-box">
-                <div class="flex items-center gap-3 mb-2">
-                    <i class="fas fa-shield-alt text-[#00d285]"></i>
-                    <h3 class="text-[#00d285] font-black text-lg">Privacy Policy</h3>
-                </div>
-                <p class="text-gray-400 text-sm leading-relaxed">Your information is kept secure according to our global privacy policy standards.</p>
-            </div>
         </div>
 
         <!-- Testimonials -->
@@ -298,13 +293,6 @@
                         <p class="gold-text font-black text-[10px] uppercase">— Grace, Abuja</p>
                     </div>
                 </div>
-                <div class="testimonial-box">
-                    <p class="text-gray-300 text-sm italic mb-4">"The assignments for kids feature is very helpful for my children's digital literacy."</p>
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-check-circle text-[10px] text-blue-400"></i>
-                        <p class="gold-text font-black text-[10px] uppercase">— Ibrahim, Kano</p>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -320,10 +308,10 @@
                 <div>
                     <h4 class="gold-text font-black text-sm uppercase tracking-widest mb-6">Platform</h4>
                     <div class="flex flex-col gap-4">
-                        <a href="#" onclick="window.scrollTo(0,0)" class="text-gray-500 text-sm">WhatsApp Earnings</a>
-                        <a href="#" onclick="window.scrollTo(0,0)" class="text-gray-500 text-sm">TikTok Live</a>
-                        <a href="#" onclick="window.scrollTo(0,0)" class="text-gray-500 text-sm">Telegram Earnings</a>
-                        <a href="#" onclick="window.scrollTo(0,0)" class="text-gray-500 text-sm">Homework for Kids</a>
+                        <a href="#" onclick="window.scrollTo(0,0)" class="text-gray-500 text-sm">Glam Works</a>
+                        <a href="#" onclick="window.scrollTo(0,0)" class="text-gray-500 text-sm">Glam Lifestyle</a>
+                        <a href="#" onclick="window.scrollTo(0,0)" class="text-gray-500 text-sm">Glam Script2Cash</a>
+                        <a href="#" onclick="window.scrollTo(0,0)" class="text-gray-500 text-sm">Glam Realtime</a>
                     </div>
                 </div>
                 <div>
@@ -338,8 +326,6 @@
                     <div class="flex flex-col gap-4">
                         <a href="privacy.html" class="text-gray-500 text-sm">Privacy Policy</a>
                         <a href="terms.html" class="text-gray-500 text-sm">Terms & Conditions</a>
-                        <a href="about.html" class="text-gray-500 text-sm">About</a>
-                        <a href="contact.html" class="text-gray-500 text-sm">Contact</a>
                     </div>
                 </div>
             </div>
