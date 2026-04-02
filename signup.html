@@ -122,46 +122,38 @@
 <body class="p-6">
 
     <div class="max-w-md mx-auto w-full pt-8 pb-12">
-        <!-- Logo/Header -->
         <div class="text-center mb-10">
             <h1 class="text-4xl font-black gold-text uppercase tracking-tighter mb-2">GLAMOUR</h1>
             <p class="text-gray-500 text-[10px] uppercase tracking-[0.4em] font-bold">Create Elite Account</p>
         </div>
 
-        <!-- Form Card -->
         <div class="gold-border-card p-8 shadow-2xl">
             <form id="signupForm" class="space-y-2">
-                <!-- Full Name -->
                 <div class="input-group">
                     <i class="fas fa-user input-icon"></i>
                     <input type="text" id="fullName" placeholder="Full Name" class="input-field" required>
                 </div>
 
-                <!-- Username -->
                 <div class="input-group">
                     <i class="fas fa-at input-icon"></i>
                     <input type="text" id="username" placeholder="Username" class="input-field" required>
                 </div>
 
-                <!-- Email -->
                 <div class="input-group">
                     <i class="fas fa-envelope input-icon"></i>
                     <input type="email" id="email" placeholder="Email Address" class="input-field" required>
                 </div>
 
-                <!-- Phone -->
                 <div class="input-group">
                     <i class="fas fa-phone input-icon"></i>
                     <input type="tel" id="phone" placeholder="Phone Number" class="input-field" required>
                 </div>
 
-                <!-- Password -->
                 <div class="input-group">
                     <i class="fas fa-lock input-icon"></i>
                     <input type="password" id="password" placeholder="Password" class="input-field" required>
                 </div>
 
-                <!-- Country -->
                 <div class="input-group">
                     <i class="fas fa-globe input-icon"></i>
                     <select id="country" class="input-field" required>
@@ -174,7 +166,6 @@
                     </select>
                 </div>
 
-                <!-- Terms -->
                 <div class="flex items-center py-4 px-2">
                     <input type="checkbox" id="terms" class="hidden" required>
                     <label for="terms" class="flex items-center cursor-pointer group">
@@ -185,7 +176,6 @@
                     </label>
                 </div>
 
-                <!-- Submit -->
                 <button type="submit" id="submitBtn" class="btn-glam mt-4">
                     Complete Registration
                 </button>
@@ -200,7 +190,6 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <footer class="mt-12 text-center">
             <p class="text-[9px] text-gray-700 font-bold uppercase tracking-[0.5em]">
                 Secure Encryption Active
@@ -208,13 +197,11 @@
         </footer>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs",
             authDomain: "glamour-76f78.firebaseapp.com",
@@ -229,7 +216,30 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Handle Checkbox UI logic
+        // --- BREVO EMAIL LOGIC ---
+        async function sendWelcomeEmail(userEmail, userName) {
+            try {
+                await fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: {
+                        'accept': 'application/json',
+                        'api-key': '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',
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "sender": { "name": "Glamour Team", "email": "registration@glamourofficial.shop" },
+                        "to": [{ "email": userEmail }],
+                        "templateId": 1, 
+                        "params": {
+                            "USERNAME": userName
+                        }
+                    })
+                });
+            } catch (error) {
+                console.error("Email error:", error);
+            }
+        }
+
         const checkbox = document.getElementById('terms');
         const customCheck = document.querySelector('.custom-checkbox');
         
@@ -243,7 +253,6 @@
             }
         });
 
-        // Registration Process
         const signupForm = document.getElementById('signupForm');
         const submitBtn = document.getElementById('submitBtn');
         const statusMsg = document.getElementById('statusMsg');
@@ -251,44 +260,34 @@
         signupForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // UI Feedback
             submitBtn.disabled = true;
             submitBtn.innerText = "Processing Elite Access...";
             statusMsg.innerText = "";
             
             const fullName = document.getElementById('fullName').value.trim();
             const rawUsername = document.getElementById('username').value.trim();
-            const username = rawUsername.toLowerCase().replace(/\s+/g, ''); // Standardize username
+            const username = rawUsername.toLowerCase().replace(/\s+/g, ''); 
             const email = document.getElementById('email').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const password = document.getElementById('password').value;
             const country = document.getElementById('country').value;
 
             try {
-                // 1. Authenticate session
                 await signInAnonymously(auth);
                 const user = auth.currentUser;
-
                 if (!user) throw new Error("Connection failed. Try again.");
 
-                // 2. Reference to unique user document
-                // Path: /artifacts/{appId}/public/data/users/{username}
                 const userRef = doc(db, 'artifacts', 'glamour', 'public', 'data', 'users', username);
-                
-                // 3. Check availability
                 const checkDoc = await getDoc(userRef);
-                if (checkDoc.exists()) {
-                    throw new Error("Elite username already claimed.");
-                }
+                if (checkDoc.exists()) throw new Error("Elite username already claimed.");
 
-                // 4. Save User Data
                 const userData = {
                     uid: user.uid,
                     fullName: fullName,
                     username: username,
                     email: email,
                     phone: phone,
-                    password: password, // Note: In production, never store plain text
+                    password: password,
                     country: country,
                     balance: 0.00,
                     referrals: 0,
@@ -296,9 +295,12 @@
                     accountStatus: 'active'
                 };
 
+                // Save to Firestore
                 await setDoc(userRef, userData);
 
-                // 5. Local storage for session handling
+                // Send Email via Brevo
+                await sendWelcomeEmail(email, fullName);
+
                 localStorage.setItem('glamour_username', username);
                 localStorage.setItem('glamour_fullname', fullName);
 
@@ -310,7 +312,6 @@
                 }, 1500);
 
             } catch (error) {
-                console.error(error);
                 statusMsg.style.color = "#ff4d4d";
                 statusMsg.innerText = error.message;
                 submitBtn.disabled = false;
