@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Join Glamour | Elite Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        :root {
+            --glam-gold: #d4af37;
+            --glam-bright-gold: #f5e050;
+            --glam-black: #050505;
+        }
+
+        body { 
+            background-color: var(--glam-black); 
+            color: #ffffff; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .gold-text {
+            background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-border-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 32px;
+            backdrop-filter: blur(20px);
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 18px 20px 18px 50px;
+            width: 100%;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .input-field:focus {
+            border-color: var(--glam-gold);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(212, 175, 55, 0.6);
+            font-size: 16px;
+        }
+
+        .btn-glam {
+            background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+            color: #000;
+            font-weight: 800;
+            border-radius: 18px;
+            padding: 18px;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-glam:active {
+            transform: scale(0.97);
+        }
+
+        select.input-field {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--glam-gold);
+            border-radius: 6px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-md mx-auto w-full pt-8 pb-12">
+        <!-- Logo/Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-black gold-text uppercase tracking-tighter mb-2">GLAMOUR</h1>
+            <p class="text-gray-500 text-[10px] uppercase tracking-[0.4em] font-bold">Create Elite Account</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="gold-border-card p-8 shadow-2xl">
+            <form id="signupForm" class="space-y-2">
+                <!-- Full Name -->
+                <div class="input-group">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" id="fullName" placeholder="Full Name" class="input-field" required>
+                </div>
+
+                <!-- Username -->
+                <div class="input-group">
+                    <i class="fas fa-at input-icon"></i>
+                    <input type="text" id="username" placeholder="Username" class="input-field" required>
+                </div>
+
+                <!-- Email -->
+                <div class="input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="email" placeholder="Email Address" class="input-field" required>
+                </div>
+
+                <!-- Phone -->
+                <div class="input-group">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input type="tel" id="phone" placeholder="Phone Number" class="input-field" required>
+                </div>
+
+                <!-- Password -->
+                <div class="input-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="password" placeholder="Password" class="input-field" required>
+                </div>
+
+                <!-- Country -->
+                <div class="input-group">
+                    <i class="fas fa-globe input-icon"></i>
+                    <select id="country" class="input-field" required>
+                        <option value="" disabled selected>Select Country</option>
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="Ghana">Ghana</option>
+                        <option value="Cameroon">Cameroon</option>
+                        <option value="United States">United States</option>
+                        <option value="Other">Other Countries</option>
+                    </select>
+                </div>
+
+                <!-- Terms -->
+                <div class="flex items-center py-4 px-2">
+                    <input type="checkbox" id="terms" class="hidden" required>
+                    <label for="terms" class="flex items-center cursor-pointer group">
+                        <div class="custom-checkbox group-hover:bg-yellow-500/10 transition-all"></div>
+                        <span class="text-[11px] text-gray-400 font-medium">
+                            I agree to the <span class="gold-text font-bold">Terms & Privacy Policy</span>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn-glam mt-4">
+                    Complete Registration
+                </button>
+            </form>
+
+            <div class="text-center mt-8">
+                <p class="text-gray-500 text-xs">
+                    Already a member? 
+                    <a href="login.html" class="gold-text font-bold ml-1">Log In</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center">
+            <p class="text-[9px] text-gray-700 font-bold uppercase tracking-[0.5em]">
+                Secure Encryption Active
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Handle Signup and Local Storage for Username
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const fullName = document.getElementById('fullName').value;
+
+            // Save details to be used in the Dashboard
+            localStorage.setItem('glamour_username', username);
+            localStorage.setItem('glamour_fullname', fullName);
+
+            // Logic to redirect or proceed
+            alert('Account created successfully, ' + username + '!');
+            window.location.href = 'dashboard.html'; // Redirect to dashboard
+        });
+
+        // Toggle checkbox visual state
+        const checkbox = document.getElementById('terms');
+        const customCheck = document.querySelector('.custom-checkbox');
+        
+        checkbox.addEventListener('change', function() {
+            if(this.checked) {
+                customCheck.innerHTML = '<i class="fas fa-check text-[10px] text-black absolute inset-0 flex items-center justify-center"></i>';
+                customCheck.style.backgroundColor = '#d4af37';
+            } else {
+                customCheck.innerHTML = '';
+                customCheck.style.backgroundColor = 'transparent';
+            }
+        });
+    </script>
+</body>
+</html>
