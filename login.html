@@ -9,31 +9,12 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         
-        :root {
-            --glam-gold: #d4af37;
-            --glam-black: #050505;
-        }
-
         body { 
-            background-color: var(--glam-black); 
+            background-color: #050505; 
             color: #ffffff; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        .bg-glow {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            z-index: -1;
-            filter: blur(50px);
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0;
         }
 
         .gold-text {
@@ -50,56 +31,17 @@
             width: 100%;
             max-width: 400px;
             backdrop-filter: blur(20px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
         }
 
         .input-box {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 18px;
-            padding: 18px 55px 18px 55px;
+            padding: 18px 18px 18px 55px;
             width: 100%;
             color: #fff;
             outline: none;
-            transition: all 0.3s ease;
             font-size: 14px;
-        }
-
-        .input-box:focus {
-            border-color: var(--glam-gold);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
-        }
-
-        .icon-overlay {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--glam-gold);
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        .eye-toggle {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--glam-gold);
-            opacity: 0.6;
-            cursor: pointer;
-            transition: opacity 0.3s;
-            z-index: 10;
-        }
-
-        .eye-toggle:hover {
-            opacity: 1;
         }
 
         .btn-login {
@@ -113,106 +55,63 @@
             letter-spacing: 2px;
             font-size: 12px;
             margin-top: 10px;
-            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .btn-login:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        #error-msg {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 15px;
-            text-align: center;
-            min-height: 1.5em;
         }
     </style>
 </head>
 <body class="p-6">
 
-    <div class="bg-glow top-0 left-0"></div>
-    <div class="bg-glow bottom-0 right-0"></div>
-
     <div class="login-card">
         <div class="text-center mb-10">
-            <h2 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.5em] mb-2">Welcome Back</h2>
+            <h2 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.5em] mb-2">Elite Secure Access</h2>
             <h1 class="text-3xl font-black gold-text uppercase italic tracking-tighter">GLAMOUR</h1>
         </div>
 
         <form id="loginForm">
-            <div class="input-group">
-                <i class="fas fa-user-circle icon-overlay"></i>
-                <input type="text" id="loginId" placeholder="Username or Email" class="input-box" required>
+            <div class="relative mb-4">
+                <i class="fas fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-yellow-600/60"></i>
+                <input type="email" id="loginEmail" placeholder="Email Address" class="input-box" required>
             </div>
 
-            <div class="input-group">
-                <i class="fas fa-shield-alt icon-overlay"></i>
-                <input type="password" id="password" placeholder="Account Password" class="input-box" required>
-                <i class="fas fa-eye eye-toggle" id="togglePassword"></i>
+            <div class="relative mb-6">
+                <i class="fas fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-yellow-600/60"></i>
+                <input type="password" id="loginPassword" placeholder="Password" class="input-box" required>
             </div>
 
-            <div class="flex justify-between items-center px-2 mb-6">
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" class="accent-yellow-600">
-                    <span class="text-[10px] font-bold text-gray-500 uppercase">Remember</span>
-                </label>
-                <a href="#" class="text-[10px] font-bold gold-text uppercase tracking-wider">Forgot?</a>
-            </div>
-
-            <button type="submit" id="submitBtn" class="btn-login">Verify Access</button>
-            
-            <p id="error-msg"></p>
+            <button type="submit" id="submitBtn" class="btn-login">Unlock Dashboard</button>
+            <p id="error-msg" class="text-center text-[10px] font-bold uppercase mt-4"></p>
         </form>
 
         <div class="text-center mt-10">
             <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
-                New to the Circle? 
-                <a href="signup.html" class="gold-text ml-1">Create Elite Account</a>
+                Don't have an account? 
+                <a href="signup.html" class="gold-text ml-1">Join the Circle</a>
             </p>
         </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Your Firebase configuration
+        // Your specific Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs",
-            authDomain: "glamour-76f78.firebaseapp.com",
-            projectId: "glamour-76f78",
-            storageBucket: "glamour-76f78.firebasestorage.app",
-            messagingSenderId: "378301162636",
-            appId: "1:378301162636:web:abe1c6aba76a93447707a9",
-            measurementId: "G-XBLLR2TCVG"
+          apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs",
+          authDomain: "glamour-76f78.firebaseapp.com",
+          projectId: "glamour-76f78",
+          storageBucket: "glamour-76f78.firebasestorage.app",
+          messagingSenderId: "378301162636",
+          appId: "1:378301162636:web:abe1c6aba76a93447707a9",
+          measurementId: "G-XBLLR2TCVG"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'glamour-76f78';
-
-        // Password visibility toggle
-        const togglePassword = document.querySelector('#togglePassword');
-        const passwordInput = document.querySelector('#password');
-
-        togglePassword.addEventListener('click', function () {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
-        });
 
         const form = document.getElementById('loginForm');
-        const btn = document.getElementById('submitBtn');
         const errorMsg = document.getElementById('error-msg');
+        const btn = document.getElementById('submitBtn');
 
         form.onsubmit = async (e) => {
             e.preventDefault();
@@ -221,48 +120,47 @@
             errorMsg.innerText = "";
 
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                // Must sign in anonymously first to get permission to query Firestore
+                await signInAnonymously(auth);
+
+                const emailInput = document.getElementById('loginEmail').value.trim().toLowerCase();
+                const passInput = document.getElementById('loginPassword').value;
+
+                // Search the "users" collection for the document with this email
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("email", "==", emailInput));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    throw new Error("No account found with this email");
                 }
 
-                const loginId = document.getElementById('loginId').value.trim().toLowerCase();
-                const pass = document.getElementById('password').value;
-
-                // Path Rule compliance
-                const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
-                const querySnapshot = await getDocs(usersRef);
-                
-                let authenticatedUser = null;
-
+                let loginSuccess = false;
                 querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.username && (data.username.toLowerCase() === loginId || data.email.toLowerCase() === loginId) && data.password === pass) {
-                        authenticatedUser = { ...data, id: doc.id };
+                    const userData = doc.data();
+                    if (userData.password === passInput) {
+                        // Success! Save the username to local storage for the dashboard
+                        localStorage.setItem('glamour_username', userData.username);
+                        loginSuccess = true;
                     }
                 });
 
-                if (authenticatedUser) {
-                    localStorage.setItem('glamour_username', authenticatedUser.username);
+                if (loginSuccess) {
                     errorMsg.style.color = "#d4af37";
-                    errorMsg.innerText = "Access Granted. Redirecting...";
-                    
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1500);
+                    errorMsg.innerText = "Welcome back! Redirecting...";
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
                 } else {
-                    throw new Error("Invalid Credentials provided");
+                    throw new Error("Incorrect password provided");
                 }
 
             } catch (err) {
-                console.error(err);
                 errorMsg.style.color = "#ff4d4d";
                 errorMsg.innerText = err.message;
-                btn.innerText = "Verify Access";
+                btn.innerText = "Unlock Dashboard";
                 btn.disabled = false;
             }
         };
     </script>
 </body>
 </html>
+
