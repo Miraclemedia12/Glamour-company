@@ -216,30 +216,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- BREVO EMAIL LOGIC ---
-        async function sendWelcomeEmail(userEmail, userName) {
-            try {
-                await fetch('https://api.brevo.com/v3/smtp/email', {
-                    method: 'POST',
-                    headers: {
-                        'accept': 'application/json',
-                        'api-key': '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',
-                        'content-type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        "sender": { "name": "Glamour Team", "email": "registration@glamourofficial.shop" },
-                        "to": [{ "email": userEmail }],
-                        "templateId": 1, 
-                        "params": {
-                            "USERNAME": userName
-                        }
-                    })
-                });
-            } catch (error) {
-                console.error("Email error:", error);
-            }
-        }
-
+        // UI logic for checkbox
         const checkbox = document.getElementById('terms');
         const customCheck = document.querySelector('.custom-checkbox');
         
@@ -253,6 +230,7 @@
             }
         });
 
+        // Registration Logic
         const signupForm = document.getElementById('signupForm');
         const submitBtn = document.getElementById('submitBtn');
         const statusMsg = document.getElementById('statusMsg');
@@ -295,11 +273,8 @@
                     accountStatus: 'active'
                 };
 
-                // Save to Firestore
+                // Save only to Firestore
                 await setDoc(userRef, userData);
-
-                // Send Email via Brevo
-                await sendWelcomeEmail(email, fullName);
 
                 localStorage.setItem('glamour_username', username);
                 localStorage.setItem('glamour_fullname', fullName);
