@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Glamour Elite - Secure Access</title>
+    <title>Elite Access | Glamour Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         
         :root {
             --glam-gold: #d4af37;
@@ -17,11 +17,11 @@
         body { 
             background-color: var(--glam-black); 
             color: #ffffff; 
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            margin: 0; padding: 0;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            align-items: center;
         }
 
         .gold-text {
@@ -30,174 +30,185 @@
             -webkit-text-fill-color: transparent;
         }
 
+        .gold-border-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 32px;
+            backdrop-filter: blur(20px);
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 18px;
+        }
+
         .input-field {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 18px;
-            padding: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px 20px 16px 50px;
             width: 100%;
             color: white;
-            font-size: 14px;
+            outline: none;
             transition: all 0.3s ease;
+            font-size: 14px;
         }
 
         .input-field:focus {
-            outline: none;
             border-color: var(--glam-gold);
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        .btn-gold {
+        .input-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(212, 175, 55, 0.6);
+            font-size: 16px;
+        }
+
+        .btn-glam {
             background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
             color: #000;
             font-weight: 800;
-            padding: 18px;
             border-radius: 18px;
+            padding: 18px;
             width: 100%;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             font-size: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
         }
 
-        .loader {
-            border: 2px solid #111;
-            border-top: 2px solid var(--glam-gold);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: none;
+        .btn-glam:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #statusMsg {
+            text-align: center;
+            font-size: 11px;
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 1rem;
+        }
     </style>
 </head>
-<body class="px-8">
+<body class="p-6">
 
-    <div id="authContainer" class="max-w-md mx-auto w-full">
+    <div class="max-w-md mx-auto w-full">
         <div class="text-center mb-10">
-            <h1 class="text-4xl font-black italic gold-text mb-2">GLAMOUR ELITE</h1>
-            <p id="authSubtitle" class="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.3em]">Corporate Member Portal</p>
+            <h1 class="text-5xl font-black italic gold-text uppercase tracking-tighter mb-2">GLAMOUR</h1>
+            <p class="text-gray-500 text-[10px] uppercase tracking-[0.5em] font-bold">Secure Member Access</p>
         </div>
 
-        <div class="space-y-4">
-            <div id="signupOnlyFields" style="display: none;">
-                <input type="text" id="username" placeholder="Full Name or Username" class="input-field mb-4">
-                <select id="country" class="input-field mb-4 appearance-none" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em;">
-                    <option value="Nigeria">Nigeria</option>
-                    <option value="Ghana">Ghana</option>
-                    <option value="Cameroon">Cameroon</option>
-                </select>
+        <div class="gold-border-card p-8 shadow-2xl">
+            <form id="loginForm">
+                
+                <div class="input-group">
+                    <i class="fas fa-at input-icon"></i>
+                    <input type="text" id="username" placeholder="Username" class="input-field" required autocomplete="username">
+                </div>
+
+                <div class="input-group">
+                    <i class="fas fa-shield-halved input-icon"></i>
+                    <input type="password" id="password" placeholder="Passcode" class="input-field" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-glam mt-4">
+                    Login
+                </button>
+                
+                <div id="statusMsg"></div>
+            </form>
+
+            <div class="text-center mt-8 pt-4 border-t border-zinc-800/50">
+                <p class="text-gray-500 text-[11px] font-bold uppercase tracking-widest">
+                    Don't have an account? 
+                    <a href="signup.html" class="gold-text font-black ml-1 border-b border-gold-500/30">Join Elite</a>
+                </p>
             </div>
-
-            <input type="email" id="email" placeholder="Email Address" class="input-field">
-            <input type="password" id="password" placeholder="Password" class="input-field">
-            
-            <button id="authBtn" onclick="handleAuth()" class="btn-gold flex justify-center items-center gap-3">
-                <span id="btnText">Sign In</span>
-                <div id="btnLoader" class="loader"></div>
-            </button>
         </div>
 
-        <div class="mt-8 text-center">
-            <button onclick="toggleMode()" id="toggleBtn" class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
-                New member? <span class="gold-text">Create Account</span>
-            </button>
-        </div>
-    </div>
-
-    <div id="errorModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[3000] hidden items-center justify-center p-6">
-        <div class="bg-zinc-950 border border-red-900/30 p-8 rounded-[35px] w-full max-w-xs text-center">
-            <i class="fas fa-circle-exclamation text-red-600 text-3xl mb-4"></i>
-            <h3 class="text-white font-bold uppercase text-xs mb-2">Access Denied</h3>
-            <p id="errorMessage" class="text-zinc-500 text-[10px] uppercase font-bold leading-relaxed mb-6"></p>
-            <button onclick="document.getElementById('errorModal').style.display='none'" class="w-full py-4 bg-zinc-900 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-white">Dismiss</button>
-        </div>
+        <p class="text-center mt-12 text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">© 2026 Glamour Elite Global Systems</p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // CRITICAL: We do not manually define the config here. 
-        // The environment provides __firebase_config automatically.
-        const firebaseConfig = JSON.parse(__firebase_config);
-        
-        // This line ensures we don't trip the "invalid-api-key" error 
-        // by letting the environment handle the key injection.
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = __app_id;
-
-        let isLogin = true;
-
-        window.toggleMode = () => {
-            isLogin = !isLogin;
-            document.getElementById('signupOnlyFields').style.display = isLogin ? 'none' : 'block';
-            document.getElementById('btnText').innerText = isLogin ? 'Sign In' : 'Register Account';
-            document.getElementById('toggleBtn').innerHTML = isLogin ? 
-                'New member? <span class="gold-text">Create Account</span>' : 
-                'Already an elite? <span class="gold-text">Sign In</span>';
+        // Your Exact Config from Signup
+        const firebaseConfig = {
+            apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs",
+            authDomain: "glamour-76f78.firebaseapp.com",
+            projectId: "glamour-76f78",
+            storageBucket: "glamour-76f78.firebasestorage.app",
+            messagingSenderId: "378301162636",
+            appId: "1:378301162636:web:abe1c6aba76a93447707a9"
         };
 
-        function showError(msg) {
-            document.getElementById('errorMessage').innerText = msg;
-            document.getElementById('errorModal').style.display = 'flex';
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        window.handleAuth = async () => {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const username = document.getElementById('username').value.trim();
-            const country = document.getElementById('country').value;
+        const loginForm = document.getElementById('loginForm');
+        const status = document.getElementById('statusMsg');
+        const btn = document.getElementById('submitBtn');
 
-            if (!email || !password) return showError("Fields cannot be empty.");
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            const btnLoader = document.getElementById('btnLoader');
-            const btnText = document.getElementById('btnText');
-            btnLoader.style.display = 'block';
-            btnText.style.opacity = '0';
+            // UI Loading
+            btn.disabled = true;
+            btn.innerText = "Verifying Identity...";
+            status.innerText = "";
+
+            const username = document.getElementById('username').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
 
             try {
-                if (isLogin) {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    window.location.href = 'dashboard.html';
-                } else {
-                    if (!username) {
-                        btnLoader.style.display = 'none';
-                        btnText.style.opacity = '1';
-                        return showError("Username is required.");
-                    }
-                    
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
+                // Ensure auth session is active
+                await signInAnonymously(auth);
 
-                    // Save extra info to Firestore
-                    const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid);
-                    await setDoc(userRef, {
-                        email: email,
-                        username: username,
-                        country: country,
-                        balance: (country === "Ghana" ? 120 : (country === "Cameroon" ? 5400 : 10000)),
-                        isActivated: false,
-                        uid: user.uid
-                    });
+                // Fetch the user document by ID (Username)
+                const userRef = doc(db, 'users', username);
+                const userSnap = await getDoc(userRef);
 
-                    window.location.href = 'dashboard.html';
+                if (!userSnap.exists()) {
+                    throw new Error("Elite profile not found.");
                 }
+
+                const userData = userSnap.data();
+
+                // Simple check: compare passwords
+                if (userData.password === password) {
+                    // Save username to localStorage so Dashboard knows who is logged in
+                    localStorage.setItem('glamour_username', username);
+                    
+                    status.style.color = "#d4af37";
+                    status.innerText = "ACCESS GRANTED. INITIALIZING...";
+                    
+                    // Redirect to your Dashboard
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1200);
+                } else {
+                    throw new Error("Invalid passcode provided.");
+                }
+
             } catch (error) {
-                console.error(error);
-                let message = "Auth failed. Please try again.";
-                if (error.code === 'auth/email-already-in-use') message = "Email already in use.";
-                if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') message = "Invalid email or password.";
-                showError(message);
-            } finally {
-                btnLoader.style.display = 'none';
-                btnText.style.opacity = '1';
+                console.error("Login Error:", error);
+                status.style.color = "#ff4d4d";
+                status.innerText = error.message.toUpperCase();
+                btn.disabled = false;
+                btn.innerText = "Authorize Entry";
             }
-        };
+        });
     </script>
 </body>
 </html>
+
+
