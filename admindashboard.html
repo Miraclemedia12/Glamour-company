@@ -138,11 +138,11 @@
                     <h3 class="text-lg font-black text-white mb-6" id="dispUser">@Username</h3>
                     <div class="space-y-5">
                         <div>
-                            <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Main Balance (₦)</label>
+                            <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Main Balance</label>
                             <input type="number" id="editBal" class="input-field text-yellow-500 font-bold">
                         </div>
                         <div>
-                            <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Indirect Earnings (₦)</label>
+                            <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Indirect Earnings</label>
                             <input type="number" id="editInd" class="input-field text-yellow-500 font-bold">
                         </div>
                         <div>
@@ -187,7 +187,7 @@
                         <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Telegram Channel Link</label>
                         <input type="text" id="sysTelegram" placeholder="https://t.me/..." class="input-field">
                     </div>
-                    <button id="updateSysBtn" class="btn-gold mt-6">Save Global Settings</button>
+                    <button id="updateSysBtn" class="btn-gold mt-6">Save & Sync Global Settings</button>
                 </div>
             </div>
         </div>
@@ -197,7 +197,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs",
@@ -213,7 +213,7 @@
 
         let targetUser = null;
 
-        // Login
+        // Login Logic
         document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const u = document.getElementById('adminUser').value;
@@ -227,7 +227,7 @@
             }
         });
 
-        // Tab Switcher
+        // Tab Switching Logic
         window.switchTab = (tab) => {
             document.getElementById('userTabSection').classList.add('hidden');
             document.getElementById('systemTabSection').classList.add('hidden');
@@ -243,65 +243,81 @@
             }
         }
 
-        // Load System Settings
+        // Real-time Loading of Global Settings
         async function loadSystemSettings() {
             const sysRef = doc(db, 'system', 'config');
-            const snap = await getDoc(sysRef);
-            if(snap.exists()) {
-                const data = snap.data();
-                document.getElementById('sysBank').value = data.bankName || "";
-                document.getElementById('sysAccNo').value = data.accNumber || "";
-                document.getElementById('sysAccName').value = data.accName || "";
-                document.getElementById('sysWhatsapp').value = data.whatsapp || "";
-                document.getElementById('sysTelegram').value = data.telegram || "";
-            }
+            // Using onSnapshot so admin sees current live values immediately
+            onSnapshot(sysRef, (snap) => {
+                if(snap.exists()) {
+                    const data = snap.data();
+                    document.getElementById('sysBank').value = data.bankName || "";
+                    document.getElementById('sysAccNo').value = data.accNumber || "";
+                    document.getElementById('sysAccName').value = data.accName || "";
+                    document.getElementById('sysWhatsapp').value = data.whatsapp || "";
+                    document.getElementById('sysTelegram').value = data.telegram || "";
+                }
+            });
         }
 
-        // Update System Settings
+        // Save Global Settings
         document.getElementById('updateSysBtn').addEventListener('click', async () => {
             const btn = document.getElementById('updateSysBtn');
             const msg = document.getElementById('globalStatus');
+            btn.innerText = "SYNCING...";
             btn.disabled = true;
 
             try {
                 const sysRef = doc(db, 'system', 'config');
+                // Use setDoc with merge to ensure the document exists and updates correctly
                 await setDoc(sysRef, {
                     bankName: document.getElementById('sysBank').value,
                     accNumber: document.getElementById('sysAccNo').value,
                     accName: document.getElementById('sysAccName').value,
                     whatsapp: document.getElementById('sysWhatsapp').value,
-                    telegram: document.getElementById('sysTelegram').value
+                    telegram: document.getElementById('sysTelegram').value,
+                    lastUpdated: new Date().getTime()
                 }, { merge: true });
 
-                msg.innerText = "Global Settings Updated!";
+                msg.innerText = "SYSTEM SYNCHRONIZED SUCCESSFULLY!";
                 msg.style.color = "#d4af37";
             } catch (err) {
-                msg.innerText = "Error: " + err.message;
+                console.error(err);
+                msg.innerText = "SYNC ERROR: " + err.message;
+                msg.style.color = "#ff4444";
             } finally {
                 btn.disabled = false;
-                setTimeout(() => msg.innerText = "", 3000);
+                btn.innerText = "SAVE & SYNC GLOBAL SETTINGS";
+                setTimeout(() => msg.innerText = "", 4000);
             }
         });
 
-        // User Management logic (Search & Update)
+        // Search User
         document.getElementById('findBtn').addEventListener('click', async () => {
             const user = document.getElementById('searchUser').value.trim().toLowerCase();
             if (!user) return;
+            
             const docRef = doc(db, 'users', user);
             const snap = await getDoc(docRef);
+            
             if (snap.exists()) {
                 const data = snap.data();
                 targetUser = user;
                 document.getElementById('editorPanel').classList.remove('hidden');
-                document.getElementById('dispUser').innerText = "@" + data.username;
+                document.getElementById('dispUser').innerText = "@" + (data.username || user);
                 document.getElementById('editBal').value = data.balance || 0;
                 document.getElementById('editInd').value = data.indirectEarnings || 0;
                 document.getElementById('editStat').value = data.status || 'inactive';
-            } else { alert("User not found."); }
+            } else { 
+                alert("User not found in database."); 
+            }
         });
 
+        // Update User Profile
         document.getElementById('updateUserBtn').addEventListener('click', async () => {
             if (!targetUser) return;
+            const btn = document.getElementById('updateUserBtn');
+            btn.innerText = "UPDATING...";
+            
             try {
                 const docRef = doc(db, 'users', targetUser);
                 await updateDoc(docRef, {
@@ -309,11 +325,13 @@
                     indirectEarnings: Number(document.getElementById('editInd').value),
                     status: document.getElementById('editStat').value
                 });
-                alert("User Updated!");
-            } catch (err) { alert(err.message); }
+                alert("User Profile Updated Successfully!");
+            } catch (err) { 
+                alert("Update Failed: " + err.message); 
+            } finally {
+                btn.innerText = "UPDATE USER PROFILE";
+            }
         });
     </script>
 </body>
 </html>
-
-                      
