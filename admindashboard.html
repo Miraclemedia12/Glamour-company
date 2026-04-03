@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Master Terminal | Glamour Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        :root {
+            --glam-gold: #d4af37;
+            --glam-black: #050505;
+        }
+
+        body { 
+            background-color: var(--glam-black); 
+            color: #ffffff; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0; padding: 0;
+            min-height: 100vh;
+        }
+
+        .gold-text {
+            background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .admin-card {
+            background: #0f0f0f;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 28px;
+            margin-bottom: 24px;
+        }
+
+        .input-field {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 14px;
+            padding: 14px;
+            width: 100%;
+            color: white;
+            outline: none;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--glam-gold);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+            color: #000;
+            font-weight: 800;
+            border-radius: 14px;
+            padding: 16px;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 11px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-gold:active { transform: scale(0.98); }
+
+        .tab-btn {
+            padding: 12px 20px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 12px;
+            color: #555;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--glam-gold);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        #loginOverlay {
+            position: fixed; inset: 0;
+            background: var(--glam-black);
+            z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Admin Authentication -->
+    <div id="loginOverlay">
+        <div class="max-w-sm w-full text-center">
+            <h1 class="text-4xl font-black gold-text italic tracking-tighter mb-8 uppercase">GLAMOUR ADMIN</h1>
+            <form id="adminLoginForm" class="space-y-4">
+                <input type="text" id="adminUser" placeholder="Admin Username" class="input-field" required>
+                <input type="password" id="adminPass" placeholder="Admin Password" class="input-field" required>
+                <button type="submit" class="btn-gold">Authorize Access</button>
+            </form>
+            <p id="loginError" class="text-red-500 text-[10px] font-bold uppercase mt-6 tracking-widest hidden">Access Denied</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="adminContent" class="hidden max-w-2xl mx-auto pt-10 px-6 pb-20">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-black gold-text italic uppercase">Terminal</h2>
+            <button onclick="location.reload()" class="text-[9px] font-bold text-zinc-600 uppercase border border-zinc-800 px-4 py-2 rounded-full">Sign Out</button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex gap-2 mb-8 bg-zinc-900/50 p-1.5 rounded-2xl border border-zinc-800">
+            <button onclick="switchTab('userTab')" id="btnUserTab" class="tab-btn active flex-1">User Management</button>
+            <button onclick="switchTab('systemTab')" id="btnSystemTab" class="tab-btn flex-1">Global Settings</button>
+        </div>
+
+        <!-- Tab 1: User Management -->
+        <div id="userTabSection">
+            <div class="admin-card p-6">
+                <p class="text-[10px] font-black text-zinc-500 uppercase mb-4 tracking-widest">Search Member</p>
+                <div class="flex gap-2">
+                    <input type="text" id="searchUser" placeholder="Enter Username" class="input-field">
+                    <button id="findBtn" class="bg-zinc-800 text-white px-5 rounded-xl border border-zinc-700">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="editorPanel" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div class="admin-card p-8">
+                    <h3 class="text-lg font-black text-white mb-6" id="dispUser">@Username</h3>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Main Balance (₦)</label>
+                            <input type="number" id="editBal" class="input-field text-yellow-500 font-bold">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Indirect Earnings (₦)</label>
+                            <input type="number" id="editInd" class="input-field text-yellow-500 font-bold">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Membership</label>
+                            <select id="editStat" class="input-field font-bold">
+                                <option value="active">ACTIVE (ELITE)</option>
+                                <option value="inactive">INACTIVE (LOCKED)</option>
+                            </select>
+                        </div>
+                        <button id="updateUserBtn" class="btn-gold mt-4">Update User Profile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: System Settings -->
+        <div id="systemTabSection" class="hidden">
+            <div class="admin-card p-8">
+                <h3 class="text-lg font-black gold-text mb-6 uppercase">Global Payment Details</h3>
+                <div class="space-y-5">
+                    <div>
+                        <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Bank Name</label>
+                        <input type="text" id="sysBank" placeholder="e.g. Moniepoint MFB" class="input-field">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Account Number</label>
+                        <input type="text" id="sysAccNo" placeholder="e.g. 5100032602" class="input-field">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Account Name</label>
+                        <input type="text" id="sysAccName" placeholder="e.g. GLAMOUR ELITE" class="input-field">
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-black gold-text mt-10 mb-6 uppercase">Support Links</h3>
+                <div class="space-y-5">
+                    <div>
+                        <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">WhatsApp Support Link</label>
+                        <input type="text" id="sysWhatsapp" placeholder="https://wa.me/..." class="input-field">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Telegram Channel Link</label>
+                        <input type="text" id="sysTelegram" placeholder="https://t.me/..." class="input-field">
+                    </div>
+                    <button id="updateSysBtn" class="btn-gold mt-6">Save Global Settings</button>
+                </div>
+            </div>
+        </div>
+        
+        <p id="globalStatus" class="text-center text-[10px] font-black uppercase mt-4"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs",
+            authDomain: "glamour-76f78.firebaseapp.com",
+            projectId: "glamour-76f78",
+            storageBucket: "glamour-76f78.firebasestorage.app",
+            messagingSenderId: "378301162636",
+            appId: "1:378301162636:web:abe1c6aba76a93447707a9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let targetUser = null;
+
+        // Login
+        document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const u = document.getElementById('adminUser').value;
+            const p = document.getElementById('adminPass').value;
+            if (u === "Admin" && p === "Glamour2026") {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('adminContent').classList.remove('hidden');
+                loadSystemSettings();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        });
+
+        // Tab Switcher
+        window.switchTab = (tab) => {
+            document.getElementById('userTabSection').classList.add('hidden');
+            document.getElementById('systemTabSection').classList.add('hidden');
+            document.getElementById('btnUserTab').classList.remove('active');
+            document.getElementById('btnSystemTab').classList.remove('active');
+
+            if(tab === 'userTab') {
+                document.getElementById('userTabSection').classList.remove('hidden');
+                document.getElementById('btnUserTab').classList.add('active');
+            } else {
+                document.getElementById('systemTabSection').classList.remove('hidden');
+                document.getElementById('btnSystemTab').classList.add('active');
+            }
+        }
+
+        // Load System Settings
+        async function loadSystemSettings() {
+            const sysRef = doc(db, 'system', 'config');
+            const snap = await getDoc(sysRef);
+            if(snap.exists()) {
+                const data = snap.data();
+                document.getElementById('sysBank').value = data.bankName || "";
+                document.getElementById('sysAccNo').value = data.accNumber || "";
+                document.getElementById('sysAccName').value = data.accName || "";
+                document.getElementById('sysWhatsapp').value = data.whatsapp || "";
+                document.getElementById('sysTelegram').value = data.telegram || "";
+            }
+        }
+
+        // Update System Settings
+        document.getElementById('updateSysBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('updateSysBtn');
+            const msg = document.getElementById('globalStatus');
+            btn.disabled = true;
+
+            try {
+                const sysRef = doc(db, 'system', 'config');
+                await setDoc(sysRef, {
+                    bankName: document.getElementById('sysBank').value,
+                    accNumber: document.getElementById('sysAccNo').value,
+                    accName: document.getElementById('sysAccName').value,
+                    whatsapp: document.getElementById('sysWhatsapp').value,
+                    telegram: document.getElementById('sysTelegram').value
+                }, { merge: true });
+
+                msg.innerText = "Global Settings Updated!";
+                msg.style.color = "#d4af37";
+            } catch (err) {
+                msg.innerText = "Error: " + err.message;
+            } finally {
+                btn.disabled = false;
+                setTimeout(() => msg.innerText = "", 3000);
+            }
+        });
+
+        // User Management logic (Search & Update)
+        document.getElementById('findBtn').addEventListener('click', async () => {
+            const user = document.getElementById('searchUser').value.trim().toLowerCase();
+            if (!user) return;
+            const docRef = doc(db, 'users', user);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                targetUser = user;
+                document.getElementById('editorPanel').classList.remove('hidden');
+                document.getElementById('dispUser').innerText = "@" + data.username;
+                document.getElementById('editBal').value = data.balance || 0;
+                document.getElementById('editInd').value = data.indirectEarnings || 0;
+                document.getElementById('editStat').value = data.status || 'inactive';
+            } else { alert("User not found."); }
+        });
+
+        document.getElementById('updateUserBtn').addEventListener('click', async () => {
+            if (!targetUser) return;
+            try {
+                const docRef = doc(db, 'users', targetUser);
+                await updateDoc(docRef, {
+                    balance: Number(document.getElementById('editBal').value),
+                    indirectEarnings: Number(document.getElementById('editInd').value),
+                    status: document.getElementById('editStat').value
+                });
+                alert("User Updated!");
+            } catch (err) { alert(err.message); }
+        });
+    </script>
+</body>
+</html>
+
+                      
