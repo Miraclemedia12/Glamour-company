@@ -75,13 +75,11 @@
 <body class="px-8">
 
     <div id="authContainer" class="max-w-md mx-auto w-full">
-        <!-- Header -->
         <div class="text-center mb-10">
             <h1 class="text-4xl font-black italic gold-text mb-2">GLAMOUR ELITE</h1>
             <p id="authSubtitle" class="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.3em]">Corporate Member Portal</p>
         </div>
 
-        <!-- Form -->
         <div class="space-y-4">
             <div id="signupOnlyFields" style="display: none;">
                 <input type="text" id="username" placeholder="Full Name or Username" class="input-field mb-4">
@@ -101,7 +99,6 @@
             </button>
         </div>
 
-        <!-- Toggle -->
         <div class="mt-8 text-center">
             <button onclick="toggleMode()" id="toggleBtn" class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
                 New member? <span class="gold-text">Create Account</span>
@@ -109,7 +106,6 @@
         </div>
     </div>
 
-    <!-- Error Modal (Custom UI instead of alert) -->
     <div id="errorModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[3000] hidden items-center justify-center p-6">
         <div class="bg-zinc-950 border border-red-900/30 p-8 rounded-[35px] w-full max-w-xs text-center">
             <i class="fas fa-circle-exclamation text-red-600 text-3xl mb-4"></i>
@@ -124,18 +120,16 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "", // Filled by your environment
-            authDomain: "glamour-76f78.firebaseapp.com",
-            projectId: "glamour-76f78",
-            storageBucket: "glamour-76f78.firebasestorage.app",
-            messagingSenderId: "378301162636",
-            appId: "1:378301162636:web:abe1c6aba76a93447707a9"
-        };
-
+        // CRITICAL: We do not manually define the config here. 
+        // The environment provides __firebase_config automatically.
+        const firebaseConfig = JSON.parse(__firebase_config);
+        
+        // This line ensures we don't trip the "invalid-api-key" error 
+        // by letting the environment handle the key injection.
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const appId = __app_id;
 
         let isLogin = true;
 
@@ -154,12 +148,12 @@
         }
 
         window.handleAuth = async () => {
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            const username = document.getElementById('username').value;
+            const username = document.getElementById('username').value.trim();
             const country = document.getElementById('country').value;
 
-            if (!email || !password) return showError("Please fill all security fields.");
+            if (!email || !password) return showError("Fields cannot be empty.");
             
             const btnLoader = document.getElementById('btnLoader');
             const btnText = document.getElementById('btnText');
@@ -168,39 +162,36 @@
 
             try {
                 if (isLogin) {
-                    // Login Logic
-                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    localStorage.setItem('glamour_username', email.split('@')[0]); // Fallback display name
+                    await signInWithEmailAndPassword(auth, email, password);
                     window.location.href = 'dashboard.html';
                 } else {
-                    // Signup Logic
                     if (!username) {
                         btnLoader.style.display = 'none';
                         btnText.style.opacity = '1';
-                        return showError("Username is required for new accounts.");
+                        return showError("Username is required.");
                     }
                     
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     const user = userCredential.user;
 
-                    // Initialize User Document in Firestore
-                    await setDoc(doc(db, 'users', username), {
+                    // Save extra info to Firestore
+                    const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid);
+                    await setDoc(userRef, {
                         email: email,
+                        username: username,
                         country: country,
                         balance: (country === "Ghana" ? 120 : (country === "Cameroon" ? 5400 : 10000)),
-                        indirectEarnings: 0,
                         isActivated: false,
                         uid: user.uid
                     });
 
-                    localStorage.setItem('glamour_username', username);
                     window.location.href = 'dashboard.html';
                 }
             } catch (error) {
                 console.error(error);
-                let message = "Security protocol failed. Check credentials.";
-                if (error.code === 'auth/email-already-in-use') message = "This email is already linked to an account.";
-                if (error.code === 'auth/wrong-password') message = "Incorrect password provided.";
+                let message = "Auth failed. Please try again.";
+                if (error.code === 'auth/email-already-in-use') message = "Email already in use.";
+                if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') message = "Invalid email or password.";
                 showError(message);
             } finally {
                 btnLoader.style.display = 'none';
