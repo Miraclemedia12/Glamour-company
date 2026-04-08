@@ -1,8 +1,8 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta
-<ht name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Master Terminal | Glamour Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -91,6 +91,22 @@
             display: flex; align-items: center; justify-content: center;
             padding: 20px;
         }
+
+        .country-selector {
+            background: #111;
+            padding: 4px;
+            border-radius: 12px;
+            display: flex;
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .c-tab {
+            flex: 1; text-align: center; font-size: 9px; font-weight: 900;
+            padding: 8px 0; color: #444; border-radius: 8px; cursor: pointer;
+        }
+
+        .c-tab.active { background: #d4af37; color: #000; }
     </style>
 </head>
 <body>
@@ -161,14 +177,23 @@
         <!-- Tab 2: System Settings -->
         <div id="systemTabSection" class="hidden">
             <div class="admin-card p-8">
-                <h3 class="text-lg font-black gold-text mb-6 uppercase">Global Payment Details</h3>
+                <h3 class="text-lg font-black gold-text mb-6 uppercase">Regional Payment Details</h3>
+                
+                <!-- Region Selector -->
+                <div class="country-selector">
+                    <div onclick="switchRegion('Nigeria')" class="c-tab active" id="tabNigeria">NIGERIA</div>
+                    <div onclick="switchRegion('Ghana')" class="c-tab" id="tabGhana">GHANA</div>
+                    <div onclick="switchRegion('Cameroon')" class="c-tab" id="tabCameroon">CAMEROON</div>
+                    <div onclick="switchRegion('USA')" class="c-tab" id="tabUSA">USA</div>
+                </div>
+
                 <div class="space-y-5">
                     <div>
-                        <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Bank Name</label>
+                        <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Bank / Network Name</label>
                         <input type="text" id="sysBank" placeholder="e.g. Moniepoint MFB" class="input-field">
                     </div>
                     <div>
-                        <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Account Number</label>
+                        <label class="text-[9px] font-black text-zinc-500 uppercase mb-2 block">Account / Phone Number</label>
                         <input type="text" id="sysAccNo" placeholder="e.g. 5100032602" class="input-field">
                     </div>
                     <div>
@@ -200,7 +225,14 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(window.atob('eydhcGlLZXknOiAnQUl6YVN5QzU1MHRZTzJJWU1VdHVzUDhEc2l6WDkzcHRLSGExSlFzJywgJ2F1dGhEb21haW4nOiAnZ2xhbW91ci03NmY3OC5maXJlYmFzZWFwcC5jb20nLCAncHJvamVjdElkJzogJ2dsYW1vdXItNzZmNzgnLCAnc3RvcmFnZUJ1Y2tldCc6ICdnbGFtb3VyLTc2Zjc4LmZpcmViYXNlc3RvcmFnZS5hcHAnLCAnbWVzc2FnaW5nU2VuZGVySWQnOiAnMzc4MzAxMTYyNjM2JywgJ2FwcElkJzogJzE6Mzc4MzAxMTYyNjM2OndlYjphYmUxYzZhYmE3NmE5MzQ0NzcwN2E5J30=').replace(/'/g, '"'));
+        const firebaseConfig = {
+            apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs", 
+            authDomain: "glamour-76f78.firebaseapp.com",
+            projectId: "glamour-76f78",
+            storageBucket: "glamour-76f78.firebasestorage.app",
+            messagingSenderId: "378301162636",
+            appId: "1:378301162636:web:abe1c6aba76a93447707a9"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -209,11 +241,11 @@
 
         let targetUser = null;
         let currentUser = null;
+        let selectedRegion = "Nigeria";
+        let localSettingsCache = {};
 
-        // Path Rule 1: Fixed for global data synchronization
         const globalSettingsPath = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
 
-        // Auth Logic
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
         });
@@ -223,7 +255,6 @@
         };
         initAuth();
 
-        // Login Logic
         document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const u = document.getElementById('adminUser').value;
@@ -237,7 +268,6 @@
             }
         });
 
-        // Tab Switching Logic
         window.switchTab = (tab) => {
             document.getElementById('userTabSection').classList.add('hidden');
             document.getElementById('systemTabSection').classList.add('hidden');
@@ -253,21 +283,41 @@
             }
         }
 
-        // Real-time Loading of Global Settings from the NEW PATH
+        window.switchRegion = (region) => {
+            selectedRegion = region;
+            document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab${region}`).classList.add('active');
+            
+            // Populate inputs from cache
+            const regData = localSettingsCache.regions?.[region] || {};
+            document.getElementById('sysBank').value = regData.bankName || "";
+            document.getElementById('sysAccNo').value = regData.accountNumber || "";
+            document.getElementById('sysAccName').value = regData.accountName || "";
+        }
+
         async function loadSystemSettings() {
             onSnapshot(globalSettingsPath, (snap) => {
                 if(snap.exists()) {
                     const data = snap.data();
-                    document.getElementById('sysBank').value = data.bankName || "";
-                    document.getElementById('sysAccNo').value = data.accountNumber || "";
-                    document.getElementById('sysAccName').value = data.accountName || "";
+                    localSettingsCache = data;
+                    
                     document.getElementById('sysWhatsapp').value = data.whatsapp || "";
                     document.getElementById('sysTelegram').value = data.telegram || "";
+                    
+                    // Specific to current selected region
+                    const regData = data.regions?.[selectedRegion] || {
+                        bankName: data.bankName, 
+                        accountNumber: data.accountNumber, 
+                        accountName: data.accountName
+                    };
+                    
+                    document.getElementById('sysBank').value = regData.bankName || "";
+                    document.getElementById('sysAccNo').value = regData.accountNumber || "";
+                    document.getElementById('sysAccName').value = regData.accountName || "";
                 }
-            }, (error) => console.error("Snapshot error:", error));
+            });
         }
 
-        // Save Global Settings to the NEW PATH
         document.getElementById('updateSysBtn').addEventListener('click', async () => {
             if(!currentUser) return;
             const btn = document.getElementById('updateSysBtn');
@@ -276,20 +326,27 @@
             btn.disabled = true;
 
             try {
-                // We use setDoc with merge to match the user app's structure
-                await setDoc(globalSettingsPath, {
+                const updatedRegions = localSettingsCache.regions || {};
+                updatedRegions[selectedRegion] = {
                     bankName: document.getElementById('sysBank').value,
                     accountNumber: document.getElementById('sysAccNo').value,
                     accountName: document.getElementById('sysAccName').value,
+                };
+
+                await setDoc(globalSettingsPath, {
+                    // Maintain top level for Nigeria/Default compatibility
+                    bankName: updatedRegions["Nigeria"].bankName,
+                    accountNumber: updatedRegions["Nigeria"].accountNumber,
+                    accountName: updatedRegions["Nigeria"].accountName,
                     whatsapp: document.getElementById('sysWhatsapp').value,
                     telegram: document.getElementById('sysTelegram').value,
+                    regions: updatedRegions,
                     lastUpdated: Date.now()
                 }, { merge: true });
 
                 msg.innerText = "SYSTEM SYNCHRONIZED SUCCESSFULLY!";
                 msg.style.color = "#d4af37";
             } catch (err) {
-                console.error(err);
                 msg.innerText = "SYNC ERROR: " + err.message;
                 msg.style.color = "#ff4444";
             } finally {
@@ -299,14 +356,10 @@
             }
         });
 
-        // Search User (Private Data Path)
         document.getElementById('findBtn').addEventListener('click', async () => {
             const userSearch = document.getElementById('searchUser').value.trim().toLowerCase();
             if (!userSearch) return;
             
-            // Note: In a production multi-user environment, users are found via their specific UID path.
-            // For this admin tool, we're assuming a simple collection for demo purposes.
-            // Adjust this path if you move users into the /artifacts/{appId}/users/{uid} structure.
             const docRef = doc(db, 'users', userSearch);
             const snap = await getDoc(docRef);
             
@@ -323,7 +376,6 @@
             }
         });
 
-        // Update User Profile
         document.getElementById('updateUserBtn').addEventListener('click', async () => {
             if (!targetUser) return;
             const btn = document.getElementById('updateUserBtn');
