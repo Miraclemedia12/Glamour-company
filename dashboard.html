@@ -420,7 +420,7 @@
 
             const regData = globalAdminSettings.regions?.[country] || {
                 bankName: country === "Ghana" ? "MTN Momo" : (country === "Cameroon" ? "MTN Mobile" : "PALMPAY"),
-                accountNumber: country === "Ghana" ? "0247637488" : (country === "Cameroon" ? "680545817" : "8063932752"),
+                accountNumber: country === "Ghana" ? "0247637488" : (country === "Cameroon" ? "680545817" : "9013801817"),
                 accountName: country === "Ghana" ? "Priscilla D. Gyamfi" : (country === "Cameroon" ? "Chanceline Nwana" : "Yetunde kolawole Esther")
             };
 
@@ -494,8 +494,8 @@
             document.getElementById('paymentInitial').classList.add('hidden');
             document.getElementById('paymentVerifying').classList.remove('hidden');
         };
-        window.sendProof = () => window.open("https://wa.me/2349013801817?text=" + encodeURIComponent("Hello Admin, I have paid my activation fee. Here is my proof."));
-        window.contactSupport = () => window.open("https://wa.me/2349013801817");
+        window.sendProof = () => window.open("https://wa.me/2348063932752?text=" + encodeURIComponent("Hello Admin, I have paid my activation fee. Here is my proof."));
+        window.contactSupport = () => window.open("https://wa.me/2348063932752");
         window.logout = () => { localStorage.clear(); window.location.href = 'login.html'; };
         window.handleAction = (n) => {
             const overlay = document.createElement('div');
