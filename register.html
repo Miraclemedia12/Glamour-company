@@ -182,11 +182,20 @@
             const email = document.getElementById('email').value.trim().toLowerCase();
             const country = document.getElementById('country').value;
 
-            // Internal Fee logic for data storage
+            // Internal Fee logic and Welcome Bonus logic
             let internalFee = "₦14,000";
-            if(country === "Ghana") internalFee = "220 GHC";
-            else if(country === "Cameroon") internalFee = "13,000 XAF";
-            else if(country === "USA") internalFee = "8.00 USD";
+            let welcomeBonus = 10000; // Default for Nigeria (₦10,000)
+
+            if(country === "Ghana") {
+                internalFee = "220 GHC";
+                welcomeBonus = 180; // 180 Cedis bonus
+            } else if(country === "Cameroon") {
+                internalFee = "13,000 XAF";
+                welcomeBonus = 10000; // 10,000 XAF bonus
+            } else if(country === "USA") {
+                internalFee = "10.00 USD";
+                welcomeBonus = 8; // 8.00 USD bonus
+            }
 
             try {
                 await signInAnonymously(auth);
@@ -204,7 +213,7 @@
                     country: country,
                     referrer: document.getElementById('referrer').value,
                     regFee: internalFee,
-                    balance: 10000, // ₦10,000 Welcome Bonus
+                    balance: welcomeBonus, 
                     joinedAt: new Date().toISOString(),
                     status: 'active'
                 };
