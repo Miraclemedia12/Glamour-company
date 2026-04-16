@@ -103,6 +103,7 @@
             z-index: 1000; transform: translateX(150%);
             transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            pointer-events: none;
         }
         #activityToast.show { transform: translateX(0); }
     </style>
@@ -117,7 +118,7 @@
         </div>
         <div class="bg-zinc-900/50 border border-zinc-800 px-4 py-2 rounded-full flex items-center gap-2">
             <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span class="text-[10px] font-black text-zinc-300 uppercase tracking-tighter" id="countryDisplay">Detecting...</span>
+            <span class="text-[10px] font-black text-zinc-300 uppercase tracking-tighter" id="countryDisplay">...</span>
         </div>
     </div>
 
@@ -128,7 +129,7 @@
                 <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500">BALANCE</span>
                 <i class="fas fa-gem gold-text text-xl"></i>
             </div>
-            <div class="text-5xl font-extrabold tracking-tighter italic" id="mainBalance">...</div>
+            <div class="text-5xl font-extrabold tracking-tighter italic" id="mainBalance">₦0</div>
             
             <div class="mt-10 grid grid-cols-2 gap-4">
                 <button onclick="openActivation()" class="activate-gradient py-4 rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-transform">
@@ -234,8 +235,8 @@
             <i class="fas fa-bell text-yellow-500 text-[10px]"></i>
         </div>
         <div class="flex flex-col">
-            <span id="toastUser" class="text-[10px] font-black text-white italic uppercase">@username</span>
-            <span id="toastAction" class="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Just withdrew ₦45,000</span>
+            <span id="toastUser" class="text-[10px] font-black text-white italic uppercase">...</span>
+            <span id="toastAction" class="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">...</span>
         </div>
     </div>
 
@@ -331,7 +332,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC550tYO2IYMUtusP8DsizX93ptKHa1JQs", 
@@ -346,92 +347,140 @@
         const db = getFirestore(app);
 
         const currentUsername = localStorage.getItem('glamour_username') || "EliteGuest";
-        let globalAdminSettings = {
-            bankName: "PALMPAY",
-            accountNumber: "9013801817",
-            accountName: "Yetunde kolawole Esther",
-            regions: {}
-        };
-
+        const savedCountry = localStorage.getItem('glamour_country') || "Nigeria";
+        
         document.getElementById('userDisplay').innerText = "@" + currentUsername;
         document.getElementById('refLink').value = window.location.origin + "/index.html?ref=" + currentUsername;
 
         const appId = "default-app-id";
         const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
-        
-        // Listen to Admin Changes
+        const userDocRef = doc(db, 'users', currentUsername);
+
+        let globalAdminSettings = { regions: {} };
+
+        // INITIAL LOAD: Immediate display from local registration data
+        const initialData = {
+            country: savedCountry,
+            balance: parseInt(localStorage.getItem('glamour_balance') || "0"),
+            indirectEarnings: 0
+        };
+        syncCurrencyAndBalance(initialData.country, initialData);
+
+        // SYNC: Real-time update from Firebase
+        onSnapshot(userDocRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+                localStorage.setItem('glamour_balance', data.balance || 0);
+                localStorage.setItem('glamour_country', data.country || "Nigeria");
+                syncCurrencyAndBalance(data.country || "Nigeria", data);
+                checkDailyActivity(data);
+            }
+        });
+
         onSnapshot(settingsDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 globalAdminSettings = snapshot.data();
-                // Trigger re-render of bank details when admin updates settings
-                const userDocRef = doc(db, 'users', currentUsername);
-                onSnapshot(userDocRef, (snap) => {
-                    if(snap.exists()) syncCurrencyAndBalance(snap.data().country || "Nigeria", snap.data());
+                // Refresh bank display when settings change
+                getDoc(userDocRef).then(snap => {
+                   if(snap.exists()) syncCurrencyAndBalance(snap.data().country || "Nigeria", snap.data());
                 });
             }
         });
 
-        // Elite Activity Stream (Simulated Live Data)
-        const names = ["Adesewa", "Kwame", "Camila", "Jayden", "Ejiro", "Blessing", "Moussa", "Sarah", "Elite_King", "GlamBoss"];
-        const actions = ["Just withdrew", "Registered", "Activated Elite", "Earned Reward"];
+        // Elite Activity Stream (10 Dynamic Variations)
+        const activeUsers = ["Tunde_Elite", "Ama_Ghana", "Prince_X", "Sarah_Glam", "Ibrahim99", "Chidi_B", "Musa_Vip", "Bella_Luxury", "King_K", "Zainab_E"];
+        const actions = [
+            "Just withdrew ₦45,000", 
+            "Upgraded to Elite Level", 
+            "Just earned ₦15,000 referral", 
+            "Withdrew 750 GHS", 
+            "Completed 5 Tasks", 
+            "Registered new sub-member",
+            "Just withdrew 25,000 XAF",
+            "Activated Elite Gold",
+            "Claimed Daily Reward",
+            "Just withdrew ₦100,000"
+        ];
         
         function showEliteActivity() {
             const toast = document.getElementById('activityToast');
-            const user = names[Math.floor(Math.random() * names.length)];
-            const action = actions[Math.floor(Math.random() * actions.length)];
-            const amt = Math.floor(Math.random() * 50) + 10;
+            const randUser = activeUsers[Math.floor(Math.random() * activeUsers.length)];
+            const randAction = actions[Math.floor(Math.random() * actions.length)];
             
-            document.getElementById('toastUser').innerText = "@" + user;
-            document.getElementById('toastAction').innerText = action + " " + (action.includes("withdrew") ? "₦" + amt + ",000" : "");
+            document.getElementById('toastUser').innerText = "@" + randUser;
+            document.getElementById('toastAction').innerText = randAction;
             
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 4000);
+            setTimeout(() => toast.classList.remove('show'), 5000);
         }
-        setInterval(showEliteActivity, 12000); // Show every 12 seconds
+        setInterval(showEliteActivity, 10000); // Popup every 10 seconds
 
         function syncCurrencyAndBalance(country, userData) {
             let symbol = "₦", fee = "₦14,000", tickerText = "", bankHtml = "";
 
-            // Get regional settings from Admin or fallback to hardcoded defaults
             const regData = globalAdminSettings.regions?.[country] || {
-                bankName: country === "Ghana" ? "MTN Mobile Money" : (country === "Cameroon" ? "MTN MOMO" : "PALMPAY"),
+                bankName: country === "Ghana" ? "MTN Momo" : (country === "Cameroon" ? "MTN Mobile" : "PALMPAY"),
                 accountNumber: country === "Ghana" ? "0247637488" : (country === "Cameroon" ? "680545817" : "9013801817"),
                 accountName: country === "Ghana" ? "Priscilla D. Gyamfi" : (country === "Cameroon" ? "Chanceline Nwana" : "Yetunde kolawole Esther")
             };
 
             if(country === "Ghana") {
-                symbol = "GHS "; reward = 15; }
-                else if(userData.country === "Cameroon") { symbol = "XAF "; reward = 500; }
-                else if(userData.country === "USA") { symbol = "$"; reward =  0.50; }
+                symbol = "GHS "; fee = "220 GHS";
+                tickerText = "MINIMUM WITHDRAWAL: 350 GHS • GHANA REGION ONLINE";
+                bankHtml = createBankRow("Momo Network", regData.bankName, "Merchant Number", regData.accountNumber, "Account Holder", regData.accountName);
+            } else if(country === "Cameroon") {
+                symbol = "XAF "; fee = "13,000 XAF";
+                tickerText = "MINIMUM WITHDRAWAL: 20,000 XAF • CAMEROON REGION ONLINE";
+                bankHtml = createBankRow("Momo Network", regData.bankName, "Merchant Number", regData.accountNumber, "Account Holder", regData.accountName);
+            } else if(country === "USA") {
+                symbol = "$"; fee = "8.00 USD";
+                tickerText = "MINIMUM WITHDRAWAL: $15.00 • USA REGION ONLINE";
+                bankHtml = createBankRow("Gateway", regData.bankName, "Address", regData.accountNumber, "Receiver", regData.accountName);
+            } else {
+                symbol = "₦"; fee = "₦14,000";
+                tickerText = "MINIMUM WITHDRAWAL: ₦20,000 • NIGERIA REGION ONLINE";
+                bankHtml = createBankRow("Bank", regData.bankName, "Account No", regData.accountNumber, "Account Name", regData.accountName);
+            }
 
+            document.getElementById('mainBalance').innerText = symbol + (userData.balance || 0).toLocaleString();
+            document.getElementById('indirectIncome').innerText = symbol + (userData.indirectEarnings || 0).toLocaleString();
+            document.getElementById('countryDisplay').innerText = (country || "Nigeria").toUpperCase() + " REGION";
+            document.getElementById('feeLabel').innerText = "Activation Fee: " + fee;
+            document.getElementById('bankDetails').innerHTML = bankHtml;
+            document.getElementById('dynamicTicker').innerText = tickerText + " • SYSTEM ONLINE • NO OPAY";
+        }
+
+        async function checkDailyActivity(userData) {
+            const lastActivity = userData.lastActivityDate;
+            const today = new Date().toISOString().split('T')[0];
+            if (lastActivity !== today) {
+                let reward = 1000; let symbol = "₦";
+                if(userData.country === "Ghana") { symbol = "GHS "; reward = 15; }
+                else if(userData.country === "Cameroon") { symbol = "XAF "; reward = 500; }
+                else if(userData.country === "USA") { symbol = "$"; reward = 0.50; }
                 document.getElementById('activityValue').innerText = "+" + symbol + reward.toLocaleString();
                 document.getElementById('activityPopup').style.display = 'flex';
-                
-                await updateDoc(doc(db, 'users', currentUsername), {
-                    balance: increment(reward),
-                    lastActivityDate: today
-                });
+                await updateDoc(userDocRef, { balance: increment(reward), lastActivityDate: today });
             }
         }
 
-        function createBankRow(label1, val1, label2, val2, label3, val3) {
+        function createBankRow(l1, v1, l2, v2, l3, v3) {
             return `
                 <div class="pb-3 border-b border-zinc-900">
-                    <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${label1}</p>
-                    <p class="text-xs font-bold text-white uppercase">${val1}</p>
+                    <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${l1}</p>
+                    <p class="text-xs font-bold text-white uppercase">${v1}</p>
                 </div>
                 <div class="pb-3 border-b border-zinc-900">
-                    <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${label2}</p>
+                    <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${l2}</p>
                     <div class="flex items-center justify-between">
-                        <p class="text-xl font-black gold-text tracking-widest">${val2}</p>
-                        <button onclick="copyToClipboard('${val2}')" class="bg-zinc-800 p-2 rounded-lg text-[8px] font-black text-white active:scale-90 transition-all">COPY</button>
+                        <p class="text-xl font-black gold-text tracking-widest">${v2}</p>
+                        <button onclick="copyToClipboard('${v2}')" class="bg-zinc-800 p-2 rounded-lg text-[8px] font-black text-white active:scale-90 transition-all">COPY</button>
                     </div>
                 </div>
                 <div>
-                    <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${label3}</p>
-                    <p class="text-xs font-bold text-white italic uppercase">${val3}</p>
-                </div>
-            `;
+                    <p class="text-[8px] text-zinc-600 font-bold uppercase mb-1">${l3}</p>
+                    <p class="text-xs font-bold text-white italic uppercase">${v3}</p>
+                </div>`;
         }
 
         window.openActivation = () => {
@@ -439,53 +488,34 @@
             document.getElementById('paymentVerifying').classList.add('hidden');
             document.getElementById('activationPopup').style.display = 'flex';
         };
-        
         window.closeActivation = () => document.getElementById('activationPopup').style.display = 'none';
         window.closeActivityPopup = () => document.getElementById('activityPopup').style.display = 'none';
-
         window.startVerification = () => {
             document.getElementById('paymentInitial').classList.add('hidden');
             document.getElementById('paymentVerifying').classList.remove('hidden');
         };
-
-        window.sendProof = (platform) => {
-            const MSG = encodeURIComponent("Hello, Glamour Admin. Here is my payment receipt please verify and Activate my account.");
-            const WA_LINK = "https://wa.me/2349013801817"; 
-            window.open(`${WA_LINK}?text=${MSG}`);
-        };
-
+        window.sendProof = () => window.open("https://wa.me/2349013801817?text=" + encodeURIComponent("Hello Admin, I have paid my activation fee. Here is my proof."));
         window.contactSupport = () => window.open("https://wa.me/2349013801817");
         window.logout = () => { localStorage.clear(); window.location.href = 'login.html'; };
-
-        window.handleAction = (name) => {
+        window.handleAction = (n) => {
             const overlay = document.createElement('div');
-            overlay.className = 'popup-overlay';
-            overlay.style.display = 'flex';
-            overlay.innerHTML = `
-                <div class="bg-zinc-950 border border-zinc-900 p-10 rounded-[45px] w-full max-w-xs text-center">
-                    <i class="fas fa-shield-halved gold-text text-3xl mb-6"></i>
-                    <h3 class="gold-text font-black italic mb-3 uppercase">Access Reserved</h3>
-                    <p class="text-[9px] text-zinc-600 font-bold uppercase mb-10 px-2 leading-relaxed">Verification required to unlock ${name}.</p>
-                    <button onclick="this.parentElement.parentElement.remove(); openActivation();" class="activate-gradient w-full py-4 rounded-2xl text-[10px] uppercase shadow-lg">Verify Elite Status</button>
-                </div>
-            `;
+            overlay.className = 'popup-overlay'; overlay.style.display = 'flex';
+            overlay.innerHTML = `<div class="bg-zinc-950 border border-zinc-900 p-10 rounded-[45px] w-full max-w-xs text-center">
+                <i class="fas fa-shield-halved gold-text text-3xl mb-6"></i>
+                <h3 class="gold-text font-black italic mb-3 uppercase">Access Reserved</h3>
+                <p class="text-[9px] text-zinc-600 font-bold uppercase mb-10 leading-relaxed">Activation required for ${n}.</p>
+                <button onclick="this.parentElement.parentElement.remove(); openActivation();" class="activate-gradient w-full py-4 rounded-2xl text-[10px] uppercase">Verify Elite Status</button>
+            </div>`;
             document.body.appendChild(overlay);
-            setTimeout(() => overlay.onclick = () => overlay.remove(), 2000);
+            setTimeout(() => overlay.onclick = () => overlay.remove(), 2500);
         };
-
         window.copyRef = () => copyToClipboard(document.getElementById("refLink").value, "LINK COPIED");
-
         window.copyToClipboard = (text, message = "COPIED") => {
-            const temp = document.createElement("input");
-            temp.value = text;
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand("copy");
-            document.body.removeChild(temp);
+            const temp = document.createElement("input"); temp.value = text;
+            document.body.appendChild(temp); temp.select(); document.execCommand("copy"); document.body.removeChild(temp);
             const toast = document.createElement('div');
             toast.className = "fixed bottom-28 left-1/2 -translate-x-1/2 bg-yellow-500 text-black px-6 py-2 rounded-2xl text-[9px] font-black z-[3000]";
-            toast.innerText = message;
-            document.body.appendChild(toast);
+            toast.innerText = message; document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 2500);
         };
     </script>
